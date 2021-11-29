@@ -15,15 +15,23 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:progress="45" />
 
-    <ScrollView
+    <gortea.jgmax.wish_list.screens.add_url.view.LockableScrollView
+        android:id="@+id/page_sv"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
+        <gortea.jgmax.wish_list.screens.add_url.view.HighlightedImageView
             android:id="@+id/page_iv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:contentDescription="@string/page_description" />
-    </ScrollView>
+    </gortea.jgmax.wish_list.screens.add_url.view.LockableScrollView>
+
+    <Button
+        android:id="@+id/reload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

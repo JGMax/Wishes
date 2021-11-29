@@ -4,17 +4,13 @@ import android.graphics.Bitmap
 
 interface PageLoader {
     fun detachLoader()
-    fun loadAsHtml(
-        url: String,
-        onComplete: (String) -> Unit,
-        onError: () -> Unit,
-        onProgress: (Int) -> Unit = { }
-    )
 
     fun loadAsBitmap(
         url: String,
         onComplete: (Bitmap) -> Unit,
         onError: () -> Unit,
-        onProgress: (Int) -> Unit = { }
+        onProgress: (Int) -> Unit = { },
+        withImages: Boolean = false,
+        force: Boolean = false
     )
 }

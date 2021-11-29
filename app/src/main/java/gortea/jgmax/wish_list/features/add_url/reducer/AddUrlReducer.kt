@@ -42,6 +42,7 @@ class AddUrlReducer : Reducer<AddUrlState, AddUrlEvent, AddUrlAction> {
             }
             is AddUrlEvent.LoadingInProgress -> {
                 newState = state.copy(
+                    isLoading = true,
                     loadingProgress = event.progress,
                     pageUrl = event.url
                 )

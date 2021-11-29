@@ -1,6 +1,7 @@
 package gortea.jgmax.wish_list.screens.add_url
 
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,11 +11,17 @@ import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import gortea.jgmax.wish_list.app.screenshot
 import gortea.jgmax.wish_list.databinding.FragmentAddUrlBinding
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.add_url.action.AddUrlViewAction
 import gortea.jgmax.wish_list.screens.add_url.event.AddUrlViewEvent
 import gortea.jgmax.wish_list.screens.add_url.state.AddUrlViewState
+import gortea.jgmax.wish_list.screens.add_url.view.HighlightedImageView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AddUrlFragment :
@@ -38,7 +45,12 @@ class AddUrlFragment :
             loadingPb.isVisible = state.isLoading
             loadingPb.progress = state.loadingProgress
             pageIv.isVisible = !state.isLoading
-            state.bitmap?.let { pageIv.setImageBitmap(it) }
+            state.bitmap?.let {
+                pageIv.setImageBitmap(it)
+                pageIv.enableHighlighting(HighlightedImageView.HighlightingListener { left, top, right, bottom ->  })
+                pageSv.isScrollable = false
+                Log.e("bm", it.width.toString())
+            }
         }
         Log.e("state", state.toString())
     }
@@ -50,6 +62,7 @@ class AddUrlFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         event(AddUrlViewEvent.AddUrl("https://kazanexpress.ru/product/Bryuki-polukombinezon-Sela-zimnie-900622"))
+        binding.reload.setOnClickListener { event(AddUrlViewEvent.AddUrl("https://kazanexpress.ru/product/Bryuki-polukombinezon-Sela-zimnie-900622")) }
     }
 
     private fun showError(@StringRes message: Int) {

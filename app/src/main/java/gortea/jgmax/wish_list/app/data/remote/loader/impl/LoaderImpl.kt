@@ -7,36 +7,54 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock.uptimeMillis
 import android.view.View
-import android.webkit.*
+import android.webkit.JavascriptInterface
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 
 class LoaderImpl(
     context: Context
 ) : Loader {
-    init {
-        attach(context)
-    }
 
     private var instance: WebView? = null
     private val loaderHandler = Handler(Looper.getMainLooper())
+    private var context: Context? = null
+    private var attachingTime = 0L
+
+    init {
+        attach(context)
+    }
 
     override fun attach(context: Context) {
         detach()
         WebView.enableSlowWholeDocumentDraw()
 
+        this.context = context
         instance = WebView(context)
-        val width = context.resources.displayMetrics.run { widthPixels.coerceAtMost(heightPixels) }
-        setViewPortWidth(width)
+        setViewPortWidth()
+
+        // Workaround to fix narrow page render bug
+
+        configureBitmapPageLoader({ attachingTime = uptimeMillis() }, {})
+        prepare()
+        loadUrl("about:blank")
     }
 
-    private fun setViewPortWidth(width: Int) {
-        instance?.apply {
-            measure(
-                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-            )
-            layout(0, 0, measuredWidth, measuredHeight)
+    override fun getAttachingTime(): Long = attachingTime
+
+    private fun setViewPortWidth() {
+        context?.apply {
+            val width = resources.displayMetrics.run { widthPixels.coerceAtMost(heightPixels) }
+            instance?.apply {
+                measure(
+                    View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY)
+                )
+                layout(0, 0, measuredWidth, measuredHeight)
+            }
         }
     }
 
@@ -48,10 +66,9 @@ class LoaderImpl(
         instance?.apply {
             webViewClient = DefaultWebViewClient(
                 onComplete = {
-                    loaderHandler.postDelayed(
-                        { onComplete(screenshot()) },
-                        RENDER_DELAY
-                    )
+                    loaderHandler.postDelayed({
+                        it.screenshot()?.let { bitmap -> onComplete(bitmap) } ?: onError()
+                    }, RENDER_DELAY)
                 },
                 onError = onError,
                 onProgress = onProgress
@@ -83,16 +100,17 @@ class LoaderImpl(
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    override fun prepare() {
+    override fun prepare(loadImages: Boolean) {
+        setViewPortWidth()
         instance?.setLayerType(View.LAYER_TYPE_NONE, null)
         instance?.resumeTimers()
         instance?.visibility = View.INVISIBLE
         instance?.settings?.apply {
             javaScriptEnabled = true
-            blockNetworkImage = true
+            blockNetworkImage = !loadImages
             domStorageEnabled = true
             cacheMode = WebSettings.LOAD_NO_CACHE
-            loadsImagesAutomatically = false
+            loadsImagesAutomatically = loadImages
             setGeolocationEnabled(false)
             setSupportZoom(false)
         }
@@ -100,6 +118,7 @@ class LoaderImpl(
 
     override fun detach() {
         clear()
+        context = null
         instance = null
     }
 
@@ -119,15 +138,15 @@ class LoaderImpl(
         return instance?.screenshot()
     }
 
-    private fun WebView.screenshot(): Bitmap {
+    private fun WebView.screenshot(): Bitmap? {
         measure(
-            View.MeasureSpec.makeMeasureSpec(
-                View.MeasureSpec.UNSPECIFIED,
-                View.MeasureSpec.UNSPECIFIED
-            ),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         )
         layout(0, 0, measuredWidth, measuredHeight)
+        if (measuredWidth <= 0 || measuredHeight <= 0) {
+            return null
+        }
         val bitmap = Bitmap.createBitmap(
             measuredWidth,
             measuredHeight,
@@ -153,6 +172,8 @@ class LoaderImpl(
             onProgress(progress)
             if (progress != 100) {
                 handler.postDelayed({ handleProgress(view) }, PROGRESS_CHECK_INTERVAL)
+            } else {
+                onComplete(view)
             }
         }
 
@@ -163,16 +184,12 @@ class LoaderImpl(
 
         override fun onReceivedError(
             view: WebView?,
-            request: WebResourceRequest?,
-            error: WebResourceError?
+            errorCode: Int,
+            description: String?,
+            failingUrl: String?
         ) {
-            onError()
-        }
-
-        override fun onPageFinished(view: WebView, url: String) {
-            if (view.progress == 100) {
-                handleProgress(view)
-                onComplete(view)
+            if (errorCode == -2) {
+                onError()
             }
         }
 
@@ -208,6 +225,6 @@ class LoaderImpl(
     }
 
     private companion object {
-        private const val RENDER_DELAY = 400L
+        private const val RENDER_DELAY = 1000L
     }
 }

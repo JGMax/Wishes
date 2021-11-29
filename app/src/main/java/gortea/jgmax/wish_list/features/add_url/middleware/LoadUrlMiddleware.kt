@@ -10,9 +10,9 @@ class LoadUrlMiddleware(
     private val delayedEvent: DelayedEvent<AddUrlEvent>
 ) : Middleware<AddUrlEvent> {
     override suspend fun effect(event: AddUrlEvent): AddUrlEvent? {
-        var hasDelayedEvent = false
         val newEvent: AddUrlEvent? = when (event) {
             is AddUrlEvent.AddUrl -> {
+                var hasDelayedEvent = false
                 pageLoader.loadAsBitmap(
                     url = event.url,
                     onComplete = { page ->

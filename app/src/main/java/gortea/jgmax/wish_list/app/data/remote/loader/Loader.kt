@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 
 interface Loader {
     fun attach(context: Context)
+    fun getAttachingTime(): Long
 
     fun configureBitmapPageLoader(
         onComplete: (Bitmap) -> Unit,
@@ -19,7 +20,7 @@ interface Loader {
     )
 
     fun loadUrl(url: String)
-    fun prepare()
+    fun prepare(loadImages: Boolean = false)
     fun detach()
     fun clear()
     fun screenshot(): Bitmap?
