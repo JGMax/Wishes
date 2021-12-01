@@ -1,5 +1,7 @@
 package gortea.jgmax.wish_list.features.add_url.reducer
 
+import android.graphics.Bitmap
+import android.util.Log
 import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.features.add_url.action.AddUrlAction
 import gortea.jgmax.wish_list.features.add_url.event.AddUrlEvent
@@ -12,14 +14,15 @@ class AddUrlReducer : Reducer<AddUrlState, AddUrlEvent, AddUrlAction> {
         var newState: AddUrlState? = null
         when (event) {
             is AddUrlEvent.BitmapLoaded -> {
+                val bitmap = Bitmap.createBitmap(event.bitmap)
                 newState = state.copy(
                     isLoading = false,
                     isLoadingFailed = false,
                     loadingProgress = 100,
-                    pageBitmap = event.bitmap,
+                    pageBitmap = bitmap,
                     pageUrl = event.url
                 )
-                newAction = AddUrlAction.RenderBitmap(event.bitmap)
+                newAction = AddUrlAction.RenderBitmap(bitmap)
             }
             is AddUrlEvent.LoadingStarted -> {
                 newState = state.copy(
@@ -45,6 +48,24 @@ class AddUrlReducer : Reducer<AddUrlState, AddUrlEvent, AddUrlAction> {
                     isLoading = true,
                     loadingProgress = event.progress,
                     pageUrl = event.url
+                )
+            }
+            is AddUrlEvent.RecognitionSucceed -> {
+                newState = state.copy(
+                    recognitionInProcess = false,
+                    recognitionResult = event.text
+                )
+            }
+            is AddUrlEvent.RecognitionInProcess -> {
+                newState = state.copy(
+                    recognitionInProcess = true,
+                    recognitionResult = null
+                )
+            }
+            is AddUrlEvent.RecognitionFailed -> {
+                newState = state.copy(
+                    recognitionInProcess = false,
+                    recognitionResult = null
                 )
             }
         }

@@ -6,25 +6,30 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.launchIn
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
-abstract class AppFragment<VM : AppFragmentViewModel<S, E, A, *, *, *>, S : ViewState, E : ViewEvent, A : ViewAction> :
+abstract class AppFragment<VM : AppFragmentViewModel<VS, VE, VA, *, *, *>, VS : ViewState, VE : ViewEvent, VA : ViewAction> :
     Fragment() {
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
-
     protected abstract val viewModel: VM
 
-    protected abstract fun renderAction(action: A)
-    protected abstract fun renderState(state: S)
+    protected val state: VS
+        get() = viewModel.stateFlow.value
+
+    protected abstract fun renderAction(action: VA)
+    protected abstract fun renderState(state: VS)
 
     protected abstract fun provideView(inflater: LayoutInflater, container: ViewGroup?): View
 
-    protected fun event(event: E) {
+    protected fun applyEvent(event: VE) {
         viewModel.handleEvent(event)
+    }
+
+    protected fun applyState(state: VS) {
+        viewModel.handleState(state)
     }
 
     @CallSuper
@@ -34,18 +39,20 @@ abstract class AppFragment<VM : AppFragmentViewModel<S, E, A, *, *, *>, S : View
         savedInstanceState: Bundle?
     ): View? {
         val view = provideView(inflater, container)
-        viewModel.actionFlow
-            .onEach { renderAction(it) }
-            .launchIn(coroutineScope)
-        viewModel.stateFlow
-            .onEach { renderState(it) }
-            .launchIn(coroutineScope)
+        lifecycleScope.launch {
+            launch {
+                viewModel.actionFlow
+                    .filterNotNull()
+                    .onEach { renderAction(it) }
+                    .collect()
+            }
+            launch {
+                viewModel.stateFlow
+                    .filterNotNull()
+                    .onEach { renderState(it) }
+                    .collect()
+            }
+        }
         return view
-    }
-
-    @CallSuper
-    override fun onDestroyView() {
-        coroutineScope.cancel()
-        super.onDestroyView()
     }
 }

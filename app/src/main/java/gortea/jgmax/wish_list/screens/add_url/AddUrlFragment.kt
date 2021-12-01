@@ -1,8 +1,6 @@
 package gortea.jgmax.wish_list.screens.add_url
 
 import android.os.Bundle
-import android.os.Handler
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,17 +9,12 @@ import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import gortea.jgmax.wish_list.app.screenshot
 import gortea.jgmax.wish_list.databinding.FragmentAddUrlBinding
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.add_url.action.AddUrlViewAction
 import gortea.jgmax.wish_list.screens.add_url.event.AddUrlViewEvent
 import gortea.jgmax.wish_list.screens.add_url.state.AddUrlViewState
-import gortea.jgmax.wish_list.screens.add_url.view.HighlightedImageView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import gortea.jgmax.wish_list.screens.add_url.view.SelectableImageView
 
 @AndroidEntryPoint
 class AddUrlFragment :
@@ -29,6 +22,23 @@ class AddUrlFragment :
     private var _binding: FragmentAddUrlBinding? = null
     private val binding: FragmentAddUrlBinding
         get() = requireNotNull(_binding)
+
+    private val selectionListener = object : SelectableImageView.SelectionListener {
+
+        override fun inProcess(
+            view: SelectableImageView,
+            position: SelectableImageView.SelectedPosition
+        ) {
+            applyState(state.copy(selectedPosition = position))
+        }
+
+        override fun onComplete(
+            view: SelectableImageView,
+            position: SelectableImageView.SelectedPosition
+        ) {
+            view.bitmap?.let { applyEvent(AddUrlViewEvent.RecognizeText(it, position)) }
+        }
+    }
 
     override val viewModel: AddUrlViewModel by viewModels()
 
@@ -45,14 +55,9 @@ class AddUrlFragment :
             loadingPb.isVisible = state.isLoading
             loadingPb.progress = state.loadingProgress
             pageIv.isVisible = !state.isLoading
-            state.bitmap?.let {
-                pageIv.setImageBitmap(it)
-                pageIv.enableHighlighting(HighlightedImageView.HighlightingListener { left, top, right, bottom ->  })
-                pageSv.isScrollable = false
-                Log.e("bm", it.width.toString())
-            }
+            state.bitmap?.let { pageIv.setImageBitmap(it) }
+            text.text = state.recognitionResult ?: ""
         }
-        Log.e("state", state.toString())
     }
 
     override fun provideView(inflater: LayoutInflater, container: ViewGroup?): View {
@@ -61,8 +66,16 @@ class AddUrlFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        event(AddUrlViewEvent.AddUrl("https://kazanexpress.ru/product/Bryuki-polukombinezon-Sela-zimnie-900622"))
-        binding.reload.setOnClickListener { event(AddUrlViewEvent.AddUrl("https://kazanexpress.ru/product/Bryuki-polukombinezon-Sela-zimnie-900622")) }
+        applyEvent(AddUrlViewEvent.AddUrl("https://www.wildberries.ru/catalog/13724854/detail.aspx?targetUrl=MI"))
+        binding.pageIv.setSelectionListener(selectionListener)
+        binding.reload.setOnClickListener {
+            binding.pageSv.isScrollable = !binding.pageSv.isScrollable
+            if (binding.pageSv.isScrollable) {
+                binding.pageIv.disableSelection()
+            } else {
+                binding.pageIv.enableSelection()
+            }
+        }
     }
 
     private fun showError(@StringRes message: Int) {

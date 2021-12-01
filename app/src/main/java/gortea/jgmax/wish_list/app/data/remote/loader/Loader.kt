@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 
 interface Loader {
+    fun isAttached(): Boolean
     fun attach(context: Context)
     fun getAttachingTime(): Long
 

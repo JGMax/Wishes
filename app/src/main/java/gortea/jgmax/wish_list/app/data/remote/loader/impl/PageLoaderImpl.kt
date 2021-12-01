@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock.uptimeMillis
+import android.util.Log
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
 
@@ -12,7 +13,6 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private var loadedUrl = ""
     private var loadedBitmap: Bitmap? = null
     private var isLoading = false
-    private var isInitialLoading = true
     private val loaderHandler = Handler(Looper.getMainLooper())
 
     private fun prepareLoader(withImages: Boolean) {
@@ -25,7 +25,7 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
 
     private fun saveResult(url: String, bitmap: Bitmap) {
         loadedUrl = url
-        loadedBitmap = bitmap
+        loadedBitmap = Bitmap.createBitmap(bitmap)
     }
 
     override fun loadAsBitmap(
@@ -38,17 +38,17 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     ) {
         if (!isLoading) {
             if (loadedUrl == url && loadedBitmap != null && !force) {
-                onProgress(100)
-                loadedBitmap?.let { onComplete(it) }
+                loadedBitmap?.let { onComplete(Bitmap.createBitmap(it)) }
             } else {
                 isLoading = true
                 // Workaround to fix narrow page render bug
-                isInitialLoading = uptimeMillis() - loader.getAttachingTime() > INITIAL_TIMEOUT
+                val isInitialLoading = uptimeMillis() - loader.getAttachingTime() > INITIAL_TIMEOUT
 
                 loaderHandler.postDelayed({
                     loader.configureBitmapPageLoader({
                         isLoading = false
                         saveResult(url, it)
+                        Log.e("bitmap", it.height.toString())
                         onComplete(it)
                     }, {
                         isLoading = false

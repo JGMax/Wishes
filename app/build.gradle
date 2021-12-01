@@ -3,6 +3,7 @@ plugins {
     id 'kotlin-android'
     id 'org.jetbrains.kotlin.kapt'
     id 'dagger.hilt.android.plugin'
+    id 'kotlin-parcelize'
 }
 
 android {
@@ -41,18 +42,16 @@ dependencies {
     def hilt_version = "2.38.1"
     def nav_version = "2.3.5"
     def lifecycle_version = "2.4.0"
-    def jsoup_version = "1.14.3"
     def room_version = "2.3.0"
-    def swipe_refresh_layout_version = "1.1.0"
     def material_version = "1.4.0"
+    def text_recognition_mlkit_version = "17.0.0"
+
+    // Text Recognition MLKit
+    implementation "com.google.android.gms:play-services-mlkit-text-recognition:$text_recognition_mlkit_version"
 
     // Room
-    // -------------------------ROOM---------------------------
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
-
-    // JSoup
-    implementation "org.jsoup:jsoup:$jsoup_version"
 
     // Lifecycle
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
@@ -67,14 +66,13 @@ dependencies {
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
     // Design
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:$swipe_refresh_layout_version"
     implementation "com.google.android.material:material:$material_version"
 
     // Core
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.5.31"
     implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
+    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'

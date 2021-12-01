@@ -1,6 +1,7 @@
 package gortea.jgmax.wish_list.features.add_url.middleware
 
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
+import gortea.jgmax.wish_list.app.data.repository.Repository
 import gortea.jgmax.wish_list.features.add_url.event.AddUrlEvent
 import gortea.jgmax.wish_list.mvi.domain.DelayedEvent
 import gortea.jgmax.wish_list.mvi.domain.Middleware
@@ -12,6 +13,9 @@ class LoadUrlMiddleware(
     override suspend fun effect(event: AddUrlEvent): AddUrlEvent? {
         val newEvent: AddUrlEvent? = when (event) {
             is AddUrlEvent.AddUrl -> {
+                AddUrlEvent.CheckUrl(event.url)
+            }
+            is AddUrlEvent.AddNewUrl -> {
                 var hasDelayedEvent = false
                 pageLoader.loadAsBitmap(
                     url = event.url,
@@ -25,7 +29,8 @@ class LoadUrlMiddleware(
                     },
                     onProgress = {
                         delayedEvent.onEvent(AddUrlEvent.LoadingInProgress(event.url, it))
-                    }
+                    },
+                    withImages = true
                 )
                 if (!hasDelayedEvent) {
                     AddUrlEvent.LoadingStarted(event.url)

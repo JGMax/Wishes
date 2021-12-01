@@ -16,17 +16,18 @@ import android.webkit.WebViewClient
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 
 class LoaderImpl(
-    context: Context
+    context: Context? = null
 ) : Loader {
 
     private var instance: WebView? = null
-    private val loaderHandler = Handler(Looper.getMainLooper())
     private var context: Context? = null
     private var attachingTime = 0L
 
     init {
-        attach(context)
+        context?.let { attach(it) }
     }
+
+    override fun isAttached(): Boolean = instance != null
 
     override fun attach(context: Context) {
         detach()
@@ -65,11 +66,7 @@ class LoaderImpl(
     ) {
         instance?.apply {
             webViewClient = DefaultWebViewClient(
-                onComplete = {
-                    loaderHandler.postDelayed({
-                        it.screenshot()?.let { bitmap -> onComplete(bitmap) } ?: onError()
-                    }, RENDER_DELAY)
-                },
+                onComplete = { it.screenshot()?.let { bitmap -> onComplete(bitmap) } ?: onError() },
                 onError = onError,
                 onProgress = onProgress
             )
@@ -150,7 +147,7 @@ class LoaderImpl(
         val bitmap = Bitmap.createBitmap(
             measuredWidth,
             measuredHeight,
-            Bitmap.Config.ARGB_8888
+            Bitmap.Config.RGB_565
         )
         val canvas = Canvas(bitmap)
         val paint = Paint()
@@ -173,7 +170,7 @@ class LoaderImpl(
             if (progress != 100) {
                 handler.postDelayed({ handleProgress(view) }, PROGRESS_CHECK_INTERVAL)
             } else {
-                onComplete(view)
+                handler.postDelayed({ onComplete(view) }, RENDER_DELAY)
             }
         }
 
@@ -225,6 +222,6 @@ class LoaderImpl(
     }
 
     private companion object {
-        private const val RENDER_DELAY = 1000L
+        private const val RENDER_DELAY = 1500L
     }
 }

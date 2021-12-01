@@ -8,22 +8,26 @@ import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 data class Wish(
     @PrimaryKey val url: String,
     val title: String,
-    val imageUrl: String,
-    val group: String,
     val currentPrice: Long,
     val targetPrice: Long,
-    val notificationFrequency: Int
+    val notificationFrequency: Int,
+    val priceLeft: Int,
+    val priceTop: Int,
+    val priceRight: Int,
+    val priceBottom: Int
 ) {
     companion object {
         fun fromModel(model: WishModel): Wish {
             return Wish(
                 url = model.params.url,
                 title = model.title,
-                imageUrl = model.imageUrl,
-                group = model.group,
                 currentPrice = model.currentPrice,
                 targetPrice = model.params.targetPrice,
-                notificationFrequency = model.params.notificationFrequency
+                notificationFrequency = model.params.notificationFrequency,
+                priceLeft = model.params.pricePosition.left,
+                priceTop = model.params.pricePosition.top,
+                priceRight = model.params.pricePosition.right,
+                priceBottom = model.params.pricePosition.bottom
             )
         }
     }

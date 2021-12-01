@@ -9,48 +9,50 @@ import gortea.jgmax.wish_list.mvi.domain.State
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-abstract class AppFragmentViewModel<S : ViewState, E : ViewEvent, A : ViewAction, FS : State, FE : Event, FA : Action> :
+abstract class AppFragmentViewModel<VS : ViewState, VE : ViewEvent, VA : ViewAction, FS : State, FE : Event, FA : Action> :
     ViewModel() {
-    protected abstract val mutableStateFlow: MutableStateFlow<S>
-    val stateFlow: Flow<S>
+    protected abstract val mutableStateFlow: MutableStateFlow<VS>
+    val stateFlow: StateFlow<VS>
         get() = mutableStateFlow
 
-    protected abstract val mutableActionFlow: MutableSharedFlow<A?>
-    val actionFlow: Flow<A>
-        get() = mutableActionFlow.filterNotNull()
+    protected abstract val mutableActionFlow: MutableSharedFlow<VA?>
+    val actionFlow: SharedFlow<VA?>
+        get() = mutableActionFlow
 
     protected abstract val feature: Feature<FS, FE, FA>
-    protected abstract fun bindViewStateToFeatureState(state: S): FS
-    protected abstract fun bindFeatureStateToViewState(state: FS): S
-    protected abstract fun bindFeatureActionToViewAction(action: FA): A?
-    protected abstract fun bindViewEventToFeatureEvent(event: E): FE?
+    protected abstract fun bindViewStateToFeatureState(state: VS): FS
+    protected abstract fun bindFeatureStateToViewState(state: FS): VS
+    protected abstract fun bindFeatureActionToViewAction(action: FA): VA?
+    protected abstract fun bindViewEventToFeatureEvent(event: VE): FE?
 
-    protected fun collectFeatureAction() {
+    protected fun collectFeatureFlows() {
         viewModelScope.launch {
-            feature.actionFlow
-                .filterNotNull()
-                .collect { handleFeatureAction(it) }
+            launch {
+                feature.actionFlow
+                    .filterNotNull()
+                    .map { bindFeatureActionToViewAction(it) }
+                    .onEach { mutableActionFlow.emit(it) }
+                    .collect()
+            }
+
+            launch {
+                feature.stateFlow
+                    .filterNotNull()
+                    .map { bindFeatureStateToViewState(it) }
+                    .onEach { mutableStateFlow.emit(it) }
+                    .collect()
+            }
         }
     }
 
-    protected fun collectFeatureState() {
+    fun handleEvent(event: VE) {
+        bindViewEventToFeatureEvent(event)?.let { handleEvent(it) }
+    }
+
+    fun handleState(state: VS) {
         viewModelScope.launch {
-            feature.stateFlow
-                .filterNotNull()
-                .collect { handleFeatureState(it) }
+            mutableStateFlow.emit(state)
         }
-    }
-
-    private suspend fun handleFeatureAction(action: FA) {
-        mutableActionFlow.emit(bindFeatureActionToViewAction(action))
-    }
-
-    private suspend fun handleFeatureState(state: FS) {
-        mutableStateFlow.emit(bindFeatureStateToViewState(state))
-    }
-
-    fun handleEvent(event: E) {
-        bindViewEventToFeatureEvent(event)?.let{ handleEvent(it) }
     }
 
     private fun handleEvent(event: FE) {

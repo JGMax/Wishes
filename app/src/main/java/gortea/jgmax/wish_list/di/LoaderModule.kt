@@ -1,10 +1,8 @@
 package gortea.jgmax.wish_list.di
 
-import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
@@ -17,8 +15,8 @@ import javax.inject.Singleton
 object LoaderModule {
     @Provides
     @Singleton
-    fun provideLoader(@ApplicationContext context: Context): Loader {
-        return LoaderImpl(context)
+    fun provideLoader(): Loader {
+        return LoaderImpl()
     }
 
     @Provides

@@ -17,9 +17,6 @@ interface WishesDAO {
     @Query("SELECT * FROM wish")
     fun getWishes(): List<Wish>
 
-    @Query("SELECT * FROM wish WHERE `group` LIKE :group")
-    fun getWishesByGroup(group: String): List<Wish>
-
     @Query("SELECT * FROM wish WHERE url LIKE :url")
     fun getWishesByUrl(url: String): List<Wish>
 }

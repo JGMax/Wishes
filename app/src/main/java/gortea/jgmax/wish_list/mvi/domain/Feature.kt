@@ -8,11 +8,11 @@ abstract class Feature<S : State, E : Event, A : Action>(
     private val coroutineScope: CoroutineScope
 ) {
     protected abstract val mutableStateFlow: MutableStateFlow<S>
-    val stateFlow: Flow<S>
+    val stateFlow: StateFlow<S>
         get() = mutableStateFlow
     protected abstract val mutableEventFlow: MutableSharedFlow<E>
     protected abstract val mutableActionFlow: MutableSharedFlow<A>
-    val actionFlow: Flow<A>
+    val actionFlow: SharedFlow<A>
         get() = mutableActionFlow
 
     protected abstract val reducer: Reducer<S, E, A>
@@ -20,20 +20,22 @@ abstract class Feature<S : State, E : Event, A : Action>(
 
     protected fun handleSideEvents() {
         coroutineScope.launch {
-            mutableEventFlow
-                .buffer()
-                .collect { event ->
-                    middlewares.forEach {
-                        it.effect(event)?.let { newEvent ->
-                            coroutineScope.launch {
-                                mutableEventFlow.emit(newEvent)
+            launch {
+                mutableEventFlow
+                    .buffer()
+                    .collect { event ->
+                        coroutineScope.launch {
+                            middlewares.forEach {
+                                it.effect(event)?.let { newEvent ->
+                                    mutableEventFlow.emit(newEvent)
+                                }
                             }
                         }
+                        val reduced = reducer.reduce(event, stateFlow.value)
+                        reduced.first?.let { mutableStateFlow.emit(it) }
+                        reduced.second?.let { mutableActionFlow.emit(it) }
                     }
-                    val reduced = reducer.reduce(event, mutableStateFlow.value)
-                    reduced.first?.let { mutableStateFlow.emit(it) }
-                    reduced.second?.let { mutableActionFlow.emit(it) }
-                }
+            }
         }
     }
 

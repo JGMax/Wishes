@@ -7,7 +7,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import gortea.jgmax.wish_list.app.data.local.dao.SelectorsDAO
 import gortea.jgmax.wish_list.app.data.local.dao.WishesDAO
 import gortea.jgmax.wish_list.app.data.local.database.AppDatabase
 import javax.inject.Singleton
@@ -23,12 +22,6 @@ object LocalDatabaseModule {
             AppDatabase::class.java,
             AppDatabase.NAME
         ).build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideSelectorsDao(database: AppDatabase): SelectorsDAO {
-        return database.getSelectorsDao()
     }
 
     @Provides
