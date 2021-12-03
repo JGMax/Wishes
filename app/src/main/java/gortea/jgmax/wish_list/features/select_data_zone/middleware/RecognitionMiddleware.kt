@@ -20,7 +20,7 @@ class RecognitionMiddleware(
                         isRecognizing = false
                         delayedEvent.onEvent(SelectDataZoneEvent.RecognitionSucceed(visionText.text))
                     }
-                    .addOnFailureListener { _ ->
+                    .addOnFailureListener {
                         isRecognizing = false
                         delayedEvent.onEvent(SelectDataZoneEvent.RecognitionFailed)
                     }

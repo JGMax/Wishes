@@ -18,4 +18,6 @@
     <string name="add_btn_text">Add</string>
     <string name="apply_description">Apply</string>
     <string name="recognized_value_desc">Recognized value: </string>
+    <string name="percent">%</string>
+    <string name="add_wish_desc">Add wish</string>
 </resources>

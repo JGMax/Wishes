@@ -1,9 +1,11 @@
 package gortea.jgmax.wish_list.app.data.remote.loader.impl
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock.uptimeMillis
+import android.util.Log
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
 import gortea.jgmax.wish_list.app.data.remote.loader.extensions.cache
@@ -27,8 +29,22 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
         loader.prepare(withImages)
     }
 
-    override fun detachLoader() {
+    override fun detach() {
+        loadedUrl = ""
+        loadingUrl = ""
+        loadedWithImages = null
+        if (isBitmapCached) {
+            loader.getLoaderContext()?.let { removeBitmapCache(CACHE_FILE_NAME, it) }
+        }
+        isBitmapCached = false
+        isLoading = false
         loader.detach()
+    }
+
+    override fun attach(context: Context) {
+        if(!loader.isAttached()) {
+            loader.attach(context)
+        }
     }
 
     override fun attachListeners(

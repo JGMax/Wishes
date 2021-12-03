@@ -8,15 +8,11 @@ import gortea.jgmax.wish_list.features.add_wish.middleware.CheckMiddleware
 import gortea.jgmax.wish_list.features.add_wish.middleware.LoadMiddleware
 import gortea.jgmax.wish_list.features.add_wish.reducer.AddWishReducer
 import gortea.jgmax.wish_list.features.add_wish.state.AddWishState
-import gortea.jgmax.wish_list.features.select_data_zone.action.SelectDataZoneAction
-import gortea.jgmax.wish_list.features.select_data_zone.event.SelectDataZoneEvent
-import gortea.jgmax.wish_list.features.select_data_zone.state.SelectDataZoneState
 import gortea.jgmax.wish_list.mvi.data.DependencyStore
 import gortea.jgmax.wish_list.mvi.domain.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 class AddWishFeature(
@@ -27,15 +23,13 @@ class AddWishFeature(
     override val mutableEventFlow = MutableSharedFlow<AddWishEvent>()
     override val mutableActionFlow = MutableSharedFlow<AddWishAction>()
     private val delayedEvent = DelayedEvent<AddWishEvent> {
-        coroutineScope.launch {
-            handleEvent(it, stateFlow.value)
-        }
+        handleEvent(it, stateFlow.value)
     }
 
     override val reducer = AddWishReducer()
     override val middlewares = setOf(
         AcceptUrlMiddleware(),
-        AddWishMiddleware(store.repository, coroutineScope),
+        AddWishMiddleware(store.repository),
         CheckMiddleware(store.repository, delayedEvent),
         LoadMiddleware(store.pageLoader, delayedEvent)
     )

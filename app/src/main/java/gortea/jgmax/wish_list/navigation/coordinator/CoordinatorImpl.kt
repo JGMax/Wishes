@@ -24,7 +24,20 @@ class CoordinatorImpl(
         args.putString(SelectDataViewModel.URL_ARG, url)
         args.putBoolean(SelectDataViewModel.IS_LOADING_ARG, isLoading)
         args.putInt(SelectDataViewModel.LOADING_PROGRESS_ARG, loadingProgress)
-        navController?.navigate(R.id.action_add_wish_to_select_data, args)
+        navController?.navigate(R.id.fragment_select_data, args)
+    }
+
+    override fun navigateToWishList() {
+        navController?.navigate(R.id.fragment_wish_list)
+    }
+
+    override fun navigateToUpdateWish(url: String?) {
+        val args = url?.let {
+            val bundle = Bundle()
+            bundle.putString(SelectDataViewModel.URL_ARG, url)
+            bundle
+        }
+        navController?.navigate(R.id.fragment_add_wish, args)
     }
 
     override fun navigateBack() {

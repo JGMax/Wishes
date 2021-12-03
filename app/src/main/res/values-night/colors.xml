@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="box_bg">@color/black</color>
+    <color name="color_primary">#178DC3</color>
+    <color name="color_hint">#D8D6D6</color>
+    <color name="input_text_color">@color/white</color>
+
+    <color name="positive_change">#26A10B</color>
+    <color name="negative_change">#A80F0F</color>
+    <color name="no_change">@color/color_hint</color>
+</resources>

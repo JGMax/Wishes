@@ -19,6 +19,7 @@ data class WishData(
             currentPrice = currentPrice.toLongOrNull(),
             params = Params(
                 targetPrice = targetPrice.toLongOrNull(),
+                initialPrice = currentPrice.toLongOrNull(),
                 notificationFrequency = DEFAULT_NOTIFICATION_FREQUENCY,
                 position = position
             )

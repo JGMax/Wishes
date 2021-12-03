@@ -20,8 +20,8 @@ class RepositoryImpl(
         }
     }
 
-    override suspend fun addWish(wish: WishModel) {
-        withContext(Dispatchers.IO) {
+    override suspend fun addWish(wish: WishModel): Long {
+        return withContext(Dispatchers.IO) {
             wishesDAO.addWish(wish.toEntity())
         }
     }
@@ -32,9 +32,9 @@ class RepositoryImpl(
         }
     }
 
-    override suspend fun deleteWish(wish: WishModel) {
+    override suspend fun deleteWish(url: String) {
         withContext(Dispatchers.IO) {
-            wishesDAO.deleteWish(wish.toEntity())
+            wishesDAO.deleteWish(url)
         }
     }
 }

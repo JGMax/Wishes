@@ -8,7 +8,12 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="box_bg">@color/white</color>
     <color name="color_primary">#178DC3</color>
     <color name="color_hint">#757575</color>
     <color name="input_text_color">@color/black</color>
+
+    <color name="positive_change">#26A10B</color>
+    <color name="negative_change">#A80F0F</color>
+    <color name="no_change">@color/color_hint</color>
 </resources>

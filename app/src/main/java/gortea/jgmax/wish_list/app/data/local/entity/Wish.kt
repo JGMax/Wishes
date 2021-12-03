@@ -10,6 +10,7 @@ data class Wish(
     val title: String,
     val currentPrice: Long,
     val targetPrice: Long,
+    val initialPrice: Long,
     val notificationFrequency: Int,
     val priceLeft: Int,
     val priceTop: Int,

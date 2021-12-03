@@ -5,7 +5,7 @@ import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 interface Repository {
     suspend fun getWishes(): List<WishModel>
     suspend fun hasWishByUrl(url: String): Boolean
-    suspend fun addWish(wish: WishModel)
+    suspend fun addWish(wish: WishModel): Long
     suspend fun updateWish(wish: WishModel)
-    suspend fun deleteWish(wish: WishModel)
+    suspend fun deleteWish(url: String)
 }

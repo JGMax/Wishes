@@ -15,6 +15,7 @@ data class WishModel(
             currentPrice = requireNotNull(currentPrice),
             targetPrice = requireNotNull(params.targetPrice),
             notificationFrequency = params.notificationFrequency,
+            initialPrice = requireNotNull(params.initialPrice),
             priceLeft = requireNotNull(params.position?.left),
             priceTop = requireNotNull(params.position?.top),
             priceRight = requireNotNull(params.position?.right),
@@ -31,6 +32,7 @@ data class WishModel(
                 params = Params(
                     targetPrice = entity.targetPrice,
                     notificationFrequency = entity.notificationFrequency,
+                    initialPrice = entity.initialPrice,
                     position = Position(
                         left = entity.priceLeft,
                         top = entity.priceTop,

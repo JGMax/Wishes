@@ -6,13 +6,13 @@ import gortea.jgmax.wish_list.app.data.local.entity.Wish
 @Dao
 interface WishesDAO {
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun addWish(wish: Wish)
+    fun addWish(wish: Wish): Long
 
     @Update
     fun updateWish(wish: Wish)
 
-    @Delete
-    fun deleteWish(wish: Wish)
+    @Query("DELETE FROM wish WHERE url LIKE :url")
+    fun deleteWish(url: String)
 
     @Query("SELECT * FROM wish")
     fun getWishes(): List<Wish>

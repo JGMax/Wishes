@@ -36,7 +36,7 @@ class SelectDataFeature(
     }
 
     companion object {
-        inline fun<reified S: State, reified E: Event, reified A: Action> deals(
+        inline fun <reified S : State, reified E : Event, reified A : Action> deals(
             stateType: KClass<S> = S::class,
             eventType: KClass<E> = E::class,
             actionType: KClass<A> = A::class

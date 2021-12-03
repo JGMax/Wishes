@@ -124,11 +124,11 @@ class AddWishViewModel @Inject constructor(
     override fun bindFeatureActionToViewAction(action: AddWishAction): AddWishViewAction? {
         return when (action) {
             is AddWishAction.UrlAlreadyAdded -> {
-                //todo navigate back
+                coordinator.navigateBack()
                 AddWishViewAction.ShowMessage(R.string.url_already_added)
             }
             is AddWishAction.WishSuccessfulAdded -> {
-                //todo navigate to list
+                coordinator.navigateToWishList()
                 null
             }
             is AddWishAction.WishCheckFailed -> {

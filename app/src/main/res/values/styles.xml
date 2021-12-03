@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="TextInputLayoutStyle">
-        <item name="boxBackgroundColor">@color/white</item>
+        <item name="boxBackgroundColor">@color/box_bg</item>
     </style>
 
     <style name="ToolbarControlsStyle" parent="Widget.MaterialComponents.Button.UnelevatedButton">
@@ -11,5 +11,12 @@
         <item name="iconSize">24dp</item>
         <item name="iconPadding">0dp</item>
         <item name="cornerRadius">6dp</item>
+    </style>
+
+    <style name="ItemDataTextViewStyle" >
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">marquee</item>
+        <item name="layout_constrainedWidth">true</item>
+        <item name="android:textSize">16sp</item>
     </style>
 </resources>

@@ -9,6 +9,10 @@ interface Coordinator {
         loadingProgress: Int
     )
 
+    fun navigateToWishList()
+
+    fun navigateToUpdateWish(url: String? = null)
+
     fun navigateBack()
 
     fun <T> returnResult(result: T, key: String = "result")

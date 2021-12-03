@@ -46,7 +46,6 @@ dependencies {
     def material_version = "1.4.0"
     def text_recognition_mlkit_version = "17.0.0"
 
-
     // Text Recognition MLKit
     implementation "com.google.android.gms:play-services-mlkit-text-recognition:$text_recognition_mlkit_version"
 
