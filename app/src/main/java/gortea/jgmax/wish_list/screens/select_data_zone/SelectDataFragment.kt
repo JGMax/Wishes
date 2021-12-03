@@ -2,7 +2,6 @@ package gortea.jgmax.wish_list.screens.select_data_zone
 
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +10,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
+import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.databinding.FragmentSelectDataZoneBinding
 import gortea.jgmax.wish_list.mvi.view.AppFragment
+import gortea.jgmax.wish_list.screens.extensions.decodeSampledBitmapFromResource
 import gortea.jgmax.wish_list.screens.select_data_zone.action.SelectDataViewAction
 import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
 import gortea.jgmax.wish_list.screens.select_data_zone.state.SelectDataViewState
@@ -58,11 +60,14 @@ class SelectDataFragment :
             loadingPb.isVisible = state.isLoading
             loadingPb.progress = state.loadingProgress
 
-            pageIv.isVisible = !state.isLoading
-            state.bitmap?.let {
-                Log.e("bitmap", it.toString())
-                pageIv.setImageBitmap(it)
+            state.placeHolderImageViewResource?.let {
+                pageIv.setImageBitmap(decodeSampledBitmapFromResource(resources, it))
+            } ?: pageIv.setImageBitmap(state.bitmap)
+
+            if (pageIv.isSelectionEnabled != state.isSelectionActive) {
+                startReloadAnimation(reloadBtn)
             }
+
             if (state.isSelectionActive) {
                 pageIv.enableSelection()
             } else {
@@ -77,7 +82,6 @@ class SelectDataFragment :
 
     override fun provideView(inflater: LayoutInflater, container: ViewGroup?): View {
         _binding = FragmentSelectDataZoneBinding.inflate(inflater, container, false)
-        binding.pageIv.attachBitmapStorage(viewModel.bitmapStorage)
         return binding.root
     }
 
@@ -87,7 +91,26 @@ class SelectDataFragment :
         binding.apply {
             pageIv.setSelectionListener(selectionListener)
             applyFab.setOnClickListener { applyEvent(SelectDataViewEvent.OnFABClick) }
+            reloadBtn.setOnClickListener {
+                if (state.isSelectionActive) {
+                    applyState(state.copy(isSelectionActive = false))
+                } else {
+                    applyEvent(SelectDataViewEvent.ReloadUrl)
+                    startReloadAnimation(reloadBtn)
+                }
+            }
         }
+    }
+
+    private fun startReloadAnimation(view: View) {
+        val material = (view as? MaterialButton)
+        val vectorIcon =
+            AnimatedVectorDrawableCompat.create(
+                view.context,
+                state.reloadButtonAnimatedResource
+            )
+        material?.icon = vectorIcon
+        vectorIcon?.start()
     }
 
     private fun handleInitialState() {

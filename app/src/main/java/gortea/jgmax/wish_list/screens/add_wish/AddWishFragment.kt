@@ -1,28 +1,30 @@
 package gortea.jgmax.wish_list.screens.add_wish
 
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
+import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
+import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.databinding.FragmentAddWishBinding
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.add_wish.action.AddWishViewAction
 import gortea.jgmax.wish_list.screens.add_wish.data.StringWrapper
 import gortea.jgmax.wish_list.screens.add_wish.event.AddWishViewEvent
 import gortea.jgmax.wish_list.screens.add_wish.state.AddWishViewState
-import gortea.jgmax.wish_list.screens.extensions.setReadOnly
 import gortea.jgmax.wish_list.screens.extensions.setTextIfNoFocus
-import gortea.jgmax.wish_list.screens.extensions.toEditable
 
 
 @AndroidEntryPoint
@@ -31,6 +33,7 @@ class AddWishFragment :
     private var _binding: FragmentAddWishBinding? = null
     private val binding: FragmentAddWishBinding
         get() = requireNotNull(_binding)
+    private val handler = Handler(Looper.getMainLooper())
 
     private val urlWrapper = StringWrapper()
     private val titleWrapper = StringWrapper()
@@ -56,6 +59,12 @@ class AddWishFragment :
             titleInput.setTextIfNoFocus(state.wish.title)
             targetPriceInput.setTextIfNoFocus(state.wish.targetPrice)
             currentPriceValue.text = state.getCurrentPriceValue(resources)
+            val textColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                resources.getColor(state.priceTextColor, context?.theme)
+            } else {
+                resources.getColor(state.priceTextColor)
+            }
+            currentPriceValue.setTextColor(textColor)
             currentPriceHint.visibility = state.currentPriceHintVisibility
 
             acceptBtn.isEnabled = state.isAcceptButtonEnabled
@@ -65,6 +74,10 @@ class AddWishFragment :
 
             loadingPb.isVisible = state.isLoading
             loadingPb.progress = state.loadingProgress
+            if (reloadBtn.isVisible != state.isReloadVisible) {
+                reloadBtn.isVisible = state.isReloadVisible
+                handler.postDelayed({ startReloadAnim(reloadBtn) }, 80)
+            }
         }
     }
 
@@ -77,7 +90,18 @@ class AddWishFragment :
             targetPriceInput.transformationMethod = NumericKeyBoardTransformation()
             currentPriceLayout.setOnClickListener { applyEvent(AddWishViewEvent.OnPriceSelectionClick) }
             acceptBtn.setOnClickListener { applyEvent(AddWishViewEvent.OnAcceptClick) }
+            reloadBtn.setOnClickListener {
+                applyEvent(AddWishViewEvent.ReloadUrl)
+                startReloadAnim(reloadBtn)
+            }
         }
+    }
+
+    private fun startReloadAnim(view: View) {
+        val vectorIcon =
+            AnimatedVectorDrawableCompat.create(view.context, R.drawable.animated_reload)
+        (view as? MaterialButton)?.icon = vectorIcon
+        vectorIcon?.start()
     }
 
     override fun provideView(inflater: LayoutInflater, container: ViewGroup?): View {

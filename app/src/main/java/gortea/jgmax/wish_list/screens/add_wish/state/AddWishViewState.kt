@@ -21,7 +21,11 @@ data class AddWishViewState(
     val isFieldsVisible: Boolean
         get() = wasUrlAccepted
     val currentPriceHintVisibility: Int
-        get() = if(wasUrlAccepted && wish.currentPrice.isNotEmpty()) View.VISIBLE else View.INVISIBLE
+        get() = if (wasUrlAccepted && wish.currentPrice.isNotEmpty()) View.VISIBLE else View.INVISIBLE
+    val isReloadVisible: Boolean
+        get() = isUrlAccepted == true
+    val priceTextColor: Int
+        get() = if (wish.currentPrice.isEmpty()) R.color.color_hint else R.color.input_text_color
 
     fun getCurrentPriceValue(resources: Resources): String {
         return if (wish.currentPrice.isEmpty())

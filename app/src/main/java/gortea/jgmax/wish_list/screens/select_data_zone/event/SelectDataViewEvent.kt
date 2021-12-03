@@ -9,6 +9,7 @@ sealed class SelectDataViewEvent : ViewEvent {
     object UrlIsNull : SelectDataViewEvent()
     object OnFABClick : SelectDataViewEvent()
     object OnBackPressed : SelectDataViewEvent()
+    object ReloadUrl : SelectDataViewEvent()
 
     class RecognizeText(
         val bitmap: Bitmap,

@@ -27,7 +27,8 @@ class SelectDataZoneReducer :
             is SelectDataZoneEvent.Loading -> {
                 newState = state.copy(
                     isLoading = true,
-                    isLoadingFailed = false
+                    isLoadingFailed = false,
+                    recognitionResult = null
                 )
             }
             is SelectDataZoneEvent.LoadingFailed -> {

@@ -173,6 +173,13 @@ class AddWishViewModel @Inject constructor(
                     null
                 }
             }
+            is AddWishViewEvent.ReloadUrl -> {
+                if (checkedState.isUrlAccepted == true) {
+                    AddWishEvent.ReloadUrl(checkedState.wish.url)
+                } else {
+                    null
+                }
+            }
         }
     }
 }

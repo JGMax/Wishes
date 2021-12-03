@@ -11,12 +11,13 @@ class LoadMiddleware(
 ) : Middleware<AddWishEvent> {
     override suspend fun effect(event: AddWishEvent): AddWishEvent? {
         val newEvent: AddWishEvent? = when (event) {
-            is AddWishEvent.LoadUrl -> {
+            is AddWishEvent.LoadUrl, is AddWishEvent.ReloadUrl -> {
+                val url = if(event is AddWishEvent.LoadUrl) event.url else (event as AddWishEvent.ReloadUrl).url
                 var isLoading = true
                 loader.attachListeners(
                     onComplete = {
                         isLoading = false
-                        delayedEvent.onEvent(AddWishEvent.LoadingUrlSuccess(event.url))
+                        delayedEvent.onEvent(AddWishEvent.LoadingUrlSuccess(url))
                     },
                     onError = {
                         isLoading = false
@@ -24,7 +25,7 @@ class LoadMiddleware(
                     },
                     onProgress = { delayedEvent.onEvent(AddWishEvent.LoadingInProcess(it)) }
                 )
-                loader.loadAsBitmap(url = event.url)
+                loader.loadAsBitmap(url = url, force = event is AddWishEvent.ReloadUrl)
                 if (isLoading) {
                     AddWishEvent.Loading
                 } else {

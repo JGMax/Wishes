@@ -57,6 +57,8 @@ class LoaderImpl(
         instance?.stopLoading()
     }
 
+    override fun getLoaderContext(): Context? = context
+
     private fun setViewPortWidth() {
         context?.apply {
             val width = resources.displayMetrics.run { widthPixels.coerceAtMost(heightPixels) }

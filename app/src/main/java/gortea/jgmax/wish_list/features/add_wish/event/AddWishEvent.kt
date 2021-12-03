@@ -8,6 +8,7 @@ sealed class AddWishEvent : Event {
     // View Events
     class AcceptUrl(val url: String) : AddWishEvent()
     class AddWish(val wishModel: WishModel) : AddWishEvent()
+    class ReloadUrl(val url: String) : AddWishEvent()
 
     // Side Events
     object Loading : AddWishEvent()

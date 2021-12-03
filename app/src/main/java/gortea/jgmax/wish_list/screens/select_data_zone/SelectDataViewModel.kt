@@ -15,7 +15,6 @@ import gortea.jgmax.wish_list.screens.select_data_zone.action.SelectDataViewActi
 import gortea.jgmax.wish_list.screens.select_data_zone.data.Result
 import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
 import gortea.jgmax.wish_list.screens.select_data_zone.state.SelectDataViewState
-import gortea.jgmax.wish_list.screens.select_data_zone.view.BitmapStorage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -29,10 +28,6 @@ class SelectDataViewModel @Inject constructor(
     override val mutableActionFlow = MutableSharedFlow<SelectDataViewAction?>()
 
     private val digitsRegex = Regex("[^\\d]+")
-
-    val bitmapStorage = object : BitmapStorage {
-        override var bitmaps: MutableList<Bitmap?> = mutableListOf(null, null)
-    }
 
     override val feature = featureFactory
         .createFeature<SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>(
@@ -93,14 +88,15 @@ class SelectDataViewModel @Inject constructor(
     override fun bindViewEventToFeatureEvent(event: SelectDataViewEvent): SelectDataZoneEvent? {
         return when (event) {
             is SelectDataViewEvent.LoadUrl -> SelectDataZoneEvent.LoadUrl(stateFlow.value.url)
+            is SelectDataViewEvent.ReloadUrl -> SelectDataZoneEvent.ReloadUrl(stateFlow.value.url)
             is SelectDataViewEvent.RecognizeText -> {
                 event.position.run {
                     val selected = Bitmap.createBitmap(
                         event.bitmap,
-                        left.toInt(),
-                        top.toInt(),
-                        (right - left).toInt(),
-                        (bottom - top).toInt()
+                        left,
+                        top,
+                        (right - left),
+                        (bottom - top)
                     )
                     SelectDataZoneEvent.RecognizeText(selected)
                 }
@@ -117,10 +113,10 @@ class SelectDataViewModel @Inject constructor(
                             recognitionResult,
                             selectedPosition?.run {
                                 Position(
-                                    left = left.toInt(),
-                                    top = top.toInt(),
-                                    right = right.toInt(),
-                                    bottom = bottom.toInt()
+                                    left = left,
+                                    top = top,
+                                    right = right,
+                                    bottom = bottom
                                 )
                             }
                         )

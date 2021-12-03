@@ -10,6 +10,8 @@ interface Loader {
 
     fun stopLoading()
 
+    fun getLoaderContext(): Context?
+
     fun configureBitmapPageLoader(
         onComplete: (Bitmap) -> Unit,
         onError: () -> Unit,

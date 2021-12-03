@@ -4,16 +4,18 @@ import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock.uptimeMillis
-import android.util.Log
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
+import gortea.jgmax.wish_list.app.data.remote.loader.extensions.cache
+import gortea.jgmax.wish_list.app.data.remote.loader.extensions.decodeBitmapFromCache
+import gortea.jgmax.wish_list.app.data.remote.loader.extensions.removeBitmapCache
 
 
 class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private var loadedUrl = ""
     private var loadingUrl = ""
-    private var loadedBitmap: Bitmap? = null
     private var loadedWithImages: Boolean? = null
+    private var isBitmapCached = false
     private var isLoading = false
     private val loaderHandler = Handler(Looper.getMainLooper())
 
@@ -41,7 +43,10 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
 
     private fun saveResult(url: String, bitmap: Bitmap, withImages: Boolean) {
         loadedUrl = url
-        loadedBitmap = Bitmap.createBitmap(bitmap)
+        loader.getLoaderContext()?.let {
+            bitmap.cache(CACHE_FILE_NAME, it)
+            isBitmapCached = true
+        }
         loadedWithImages = withImages
     }
 
@@ -51,9 +56,17 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
         force: Boolean
     ) {
         if (!isLoading || url != loadingUrl || force) {
-            if (loadedUrl == url && loadedWithImages == withImages && loadedBitmap != null && !force) {
-                loadedBitmap?.let { onComplete(Bitmap.createBitmap(it)) }
+            if (loadedUrl == url && loadedWithImages == withImages && isBitmapCached && !force) {
+                loader.getLoaderContext()?.let { context ->
+                    decodeBitmapFromCache(CACHE_FILE_NAME, context)?.let {
+                        onComplete(it)
+                    }
+                }
             } else {
+                loader.getLoaderContext()?.let {
+                    removeBitmapCache(CACHE_FILE_NAME, it)
+                    isBitmapCached = false
+                }
                 // Workaround to fix narrow page render bug
                 val isInitialLoading = uptimeMillis() - loader.getAttachingTime() > INITIAL_TIMEOUT
 
@@ -88,5 +101,6 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
 
     private companion object {
         private const val INITIAL_TIMEOUT = 1500L
+        private const val CACHE_FILE_NAME = "BitmapLoaderCache"
     }
 }

@@ -19,9 +19,13 @@ data class SelectDataViewState(
     val fabResource: Int
         get() = if (isSelectionActive) R.drawable.ic_check else R.drawable.ic_edit
     val isFabEnabled: Boolean
-        get() = !isLoading
+        get() = !isLoading && !isLoadingFailed
     val recognitionResultText: String
         get() = if (recognitionResult.isNullOrEmpty()) "???" else recognitionResult
+    val reloadButtonAnimatedResource: Int
+        get() = if (isSelectionActive) R.drawable.animated_close else R.drawable.animated_reload
+    val placeHolderImageViewResource: Int?
+        get() = if (isLoading) R.drawable.dancing else if (isLoadingFailed) R.drawable.broken else null
 
     companion object {
         val Default = SelectDataViewState(

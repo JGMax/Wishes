@@ -6,4 +6,5 @@ sealed class AddWishViewEvent : ViewEvent {
     object OnPriceSelectionClick : AddWishViewEvent()
     object OnAcceptClick : AddWishViewEvent()
     object LoadUrl : AddWishViewEvent()
+    object ReloadUrl : AddWishViewEvent()
 }

@@ -8,6 +8,7 @@ import gortea.jgmax.wish_list.mvi.domain.Event
 sealed class SelectDataZoneEvent : Event {
     // View Events
     class LoadUrl(val url: String) : SelectDataZoneEvent()
+    class ReloadUrl(val url: String) : SelectDataZoneEvent()
     class RecognizeText(val bitmap: Bitmap) : SelectDataZoneEvent()
     class AcceptSelection(val value: String?, val position: Position?) : SelectDataZoneEvent()
 
