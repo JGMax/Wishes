@@ -1,7 +1,6 @@
 package gortea.jgmax.wish_list.app.data.repository
 
 import gortea.jgmax.wish_list.app.data.local.dao.WishesDAO
-import gortea.jgmax.wish_list.app.data.local.entity.Wish
 import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,19 +22,19 @@ class RepositoryImpl(
 
     override suspend fun addWish(wish: WishModel) {
         withContext(Dispatchers.IO) {
-            wishesDAO.addWish(Wish.fromModel(wish))
+            wishesDAO.addWish(wish.toEntity())
         }
     }
 
     override suspend fun updateWish(wish: WishModel) {
         withContext(Dispatchers.IO) {
-            wishesDAO.updateWish(Wish.fromModel(wish))
+            wishesDAO.updateWish(wish.toEntity())
         }
     }
 
     override suspend fun deleteWish(wish: WishModel) {
         withContext(Dispatchers.IO) {
-            wishesDAO.deleteWish(Wish.fromModel(wish))
+            wishesDAO.deleteWish(wish.toEntity())
         }
     }
 }

@@ -1,5 +1,6 @@
 package gortea.jgmax.wish_list.mvi.view
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gortea.jgmax.wish_list.mvi.domain.Action
@@ -31,7 +32,8 @@ abstract class AppFragmentViewModel<VS : ViewState, VE : ViewEvent, VA : ViewAct
                 feature.actionFlow
                     .filterNotNull()
                     .map { bindFeatureActionToViewAction(it) }
-                    .onEach { mutableActionFlow.emit(it) }
+                    .filterNotNull()
+                    .onEach { sendViewAction(it) }
                     .collect()
             }
 
@@ -55,9 +57,13 @@ abstract class AppFragmentViewModel<VS : ViewState, VE : ViewEvent, VA : ViewAct
         }
     }
 
-    private fun handleEvent(event: FE) {
+    protected fun sendViewAction(action: VA) {
         viewModelScope.launch {
-            feature.handleEvent(event, bindViewStateToFeatureState(mutableStateFlow.value))
+            mutableActionFlow.emit(action)
         }
+    }
+
+    private fun handleEvent(event: FE) {
+        feature.handleEvent(event, bindViewStateToFeatureState(mutableStateFlow.value))
     }
 }

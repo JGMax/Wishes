@@ -13,6 +13,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object LoaderModule {
+
     @Provides
     @Singleton
     fun provideLoader(): Loader {

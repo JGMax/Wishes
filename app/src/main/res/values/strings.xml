@@ -1,6 +1,21 @@
 <resources>
     <string name="app_name">Wishes</string>
 
+    <string name="accept_url_message">Please, accept URL</string>
+    <string name="wish_check_error">Please, fill all the fields</string>
+    <string name="url_already_added">URL is already added</string>
+    <string name="page_is_loaded">Page is loaded</string>
+    <string name="incorrect_url">Incorrect url</string>
+    <string name="page_is_too_large_error">Page is too large for us :(</string>
     <string name="loading_failed">Loading failed</string>
     <string name="page_description">Page</string>
+    <string name="url_field_hint">URL</string>
+    <string name="title_field_hint">Title</string>
+    <string name="target_price_field_hint">Target price</string>
+    <string name="current_price_field_hint">Current price</string>
+    <string name="data_is_not_recognized_error">Please, make sure, that data is recognized</string>
+    <string name="accept_btn_text">Accept URL</string>
+    <string name="add_btn_text">Add</string>
+    <string name="apply_description">Apply</string>
+    <string name="recognized_value_desc">Recognized value: </string>
 </resources>

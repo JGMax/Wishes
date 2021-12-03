@@ -39,8 +39,16 @@ abstract class Feature<S : State, E : Event, A : Action>(
         }
     }
 
-    suspend fun handleEvent(event: E, state: S) {
-        mutableEventFlow.emit(event)
-        mutableStateFlow.emit(state)
+    fun handleEvent(event: E, state: S) {
+        coroutineScope.launch {
+            mutableEventFlow.emit(event)
+            mutableStateFlow.emit(state)
+        }
+    }
+
+    fun handleState(state: S) {
+        coroutineScope.launch {
+            mutableStateFlow.emit(state)
+        }
     }
 }

@@ -8,12 +8,20 @@ import android.graphics.Paint
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock.uptimeMillis
+import android.util.Patterns
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
+import gortea.jgmax.wish_list.app.data.remote.loader.connection.ConnectionDetector
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+
 
 class LoaderImpl(
     context: Context? = null
@@ -45,6 +53,9 @@ class LoaderImpl(
     }
 
     override fun getAttachingTime(): Long = attachingTime
+    override fun stopLoading() {
+        instance?.stopLoading()
+    }
 
     private fun setViewPortWidth() {
         context?.apply {
@@ -66,9 +77,12 @@ class LoaderImpl(
     ) {
         instance?.apply {
             webViewClient = DefaultWebViewClient(
-                onComplete = { it.screenshot()?.let { bitmap -> onComplete(bitmap) } ?: onError() },
+                onComplete = {
+                    it.screenshot()?.let { bitmap -> onComplete(bitmap) } ?: onError()
+                },
                 onError = onError,
-                onProgress = onProgress
+                onProgress = onProgress,
+                context = context
             )
         }
     }
@@ -87,7 +101,8 @@ class LoaderImpl(
             webViewClient = HtmlInterceptorWebViewClient(
                 onComplete = {},
                 onError = onError,
-                onProgress = onProgress
+                onProgress = onProgress,
+                context = context
             )
         }
     }
@@ -144,38 +159,73 @@ class LoaderImpl(
         if (measuredWidth <= 0 || measuredHeight <= 0) {
             return null
         }
-        val bitmap = Bitmap.createBitmap(
-            measuredWidth,
-            measuredHeight,
-            Bitmap.Config.RGB_565
-        )
-        val canvas = Canvas(bitmap)
-        val paint = Paint()
-        val iHeight = bitmap.height.toFloat()
-        canvas.drawBitmap(bitmap, 0f, iHeight, paint)
-        draw(canvas)
-        return bitmap
+        return try {
+            val bitmap = Bitmap.createBitmap(
+                measuredWidth,
+                measuredHeight,
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmap)
+            val paint = Paint()
+            val iHeight = bitmap.height.toFloat()
+            canvas.drawBitmap(bitmap, 0f, iHeight, paint)
+            draw(canvas)
+            bitmap
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private open class DefaultWebViewClient(
         private val onComplete: (view: WebView) -> Unit,
         private val onError: () -> Unit,
-        private val onProgress: (Int) -> Unit
+        private val onProgress: (Int) -> Unit,
+        context: Context?
     ) : WebViewClient() {
+        private var hasError = false
+        private var hasConnection = true
+        private var detectorJob: Job? = null
+        private val connectionDetector = context?.let { ConnectionDetector(it) }
+
         private val handler = Handler(Looper.getMainLooper())
 
-        private fun handleProgress(view: WebView) {
+        private fun detectConnection() {
+            connectionDetector?.detect()
+            detectorJob = CoroutineScope(Dispatchers.Default).launch {
+                connectionDetector?.isConnected?.collect { hasConnection = it }
+            }
+        }
+
+        private fun stopDetection() {
+            detectorJob?.cancel()
+            detectorJob = null
+            connectionDetector?.stopDetection()
+        }
+
+        private fun handleLoadingProcess(view: WebView) {
             val progress = view.progress
             onProgress(progress)
-            if (progress != 100) {
-                handler.postDelayed({ handleProgress(view) }, PROGRESS_CHECK_INTERVAL)
+            if (!hasError && hasConnection) {
+                if (detectorJob == null) {
+                    detectConnection()
+                }
+
+                if (progress == 100) {
+                    stopDetection()
+                    handler.postDelayed({ onComplete(view) }, RENDER_DELAY)
+                } else {
+                    handler.postDelayed({ handleLoadingProcess(view) }, PROGRESS_CHECK_INTERVAL)
+                }
             } else {
-                handler.postDelayed({ onComplete(view) }, RENDER_DELAY)
+                view.stopLoading()
+                stopDetection()
+                onError()
             }
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            view?.let { handleProgress(view) }
+            view?.let { handleLoadingProcess(view) }
+            hasError = !Patterns.WEB_URL.matcher(url.toString()).matches()
             super.onPageStarted(view, url, favicon)
         }
 
@@ -186,8 +236,15 @@ class LoaderImpl(
             failingUrl: String?
         ) {
             if (errorCode == -2) {
-                onError()
+                hasError = true
+                view?.let { handleLoadingProcess(view) }
             }
+        }
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            hasError = !Patterns.WEB_URL.matcher(url.toString()).matches()
+            view?.let { handleLoadingProcess(view) }
+            super.onPageFinished(view, url)
         }
 
         private companion object {
@@ -198,7 +255,8 @@ class LoaderImpl(
     private class HtmlInterceptorWebViewClient(
         onComplete: (WebView) -> Unit,
         onError: () -> Unit,
-        onProgress: (Int) -> Unit
+        onProgress: (Int) -> Unit,
+        context: Context?
     ) : DefaultWebViewClient(
         onComplete = { view ->
             val javascript =
@@ -207,7 +265,8 @@ class LoaderImpl(
             onComplete(view)
         },
         onError = onError,
-        onProgress = onProgress
+        onProgress = onProgress,
+        context = context
     ) {
         class JSHtmlInterceptor(val onComplete: (String) -> Unit) {
             @JavascriptInterface

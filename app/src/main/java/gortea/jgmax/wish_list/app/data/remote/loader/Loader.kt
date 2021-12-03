@@ -8,6 +8,8 @@ interface Loader {
     fun attach(context: Context)
     fun getAttachingTime(): Long
 
+    fun stopLoading()
+
     fun configureBitmapPageLoader(
         onComplete: (Bitmap) -> Unit,
         onError: () -> Unit,

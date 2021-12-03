@@ -15,20 +15,4 @@ data class Wish(
     val priceTop: Int,
     val priceRight: Int,
     val priceBottom: Int
-) {
-    companion object {
-        fun fromModel(model: WishModel): Wish {
-            return Wish(
-                url = model.params.url,
-                title = model.title,
-                currentPrice = model.currentPrice,
-                targetPrice = model.params.targetPrice,
-                notificationFrequency = model.params.notificationFrequency,
-                priceLeft = model.params.pricePosition.left,
-                priceTop = model.params.pricePosition.top,
-                priceRight = model.params.pricePosition.right,
-                priceBottom = model.params.pricePosition.bottom
-            )
-        }
-    }
-}
+)
