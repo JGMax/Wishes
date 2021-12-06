@@ -15,9 +15,9 @@ class LoadMiddleware(
                 val url = if(event is AddWishEvent.LoadUrl) event.url else (event as AddWishEvent.ReloadUrl).url
                 var isLoading = true
                 loader.attachListeners(
-                    onComplete = {
+                    onComplete = { _, icon ->
                         isLoading = false
-                        delayedEvent.onEvent(AddWishEvent.LoadingUrlSuccess(url))
+                        delayedEvent.onEvent(AddWishEvent.LoadingUrlSuccess(url, icon))
                     },
                     onError = {
                         isLoading = false

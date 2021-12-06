@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.core.graphics.drawable.toBitmap
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -20,7 +21,9 @@ fun removeBitmapCache(
     context: Context,
 ) {
     val file = File(context.cacheDir, filename)
-    file.delete()
+    if (file.exists()) {
+        file.delete()
+    }
 }
 
 fun decodeBitmapFromCache(
@@ -28,35 +31,28 @@ fun decodeBitmapFromCache(
     context: Context
 ): Bitmap? {
     val file = File(context.cacheDir, filename)
-    return BitmapFactory.Options().run {
-        inJustDecodeBounds = true
-        FileInputStream(file).use {
-            BitmapFactory.decodeStream(it, null, this)
+    return if (file.exists()) {
+        BitmapFactory.Options().run {
+            inMutable = true
+            inJustDecodeBounds = false
+            val bitmap = FileInputStream(file).use {
+                BitmapFactory.decodeStream(it, null, this)
+            }
+            bitmap
         }
-
-        inJustDecodeBounds = false
-        inMutable = true
-
-        val bitmap = FileInputStream(file).use {
-            BitmapFactory.decodeStream(it, null, this)
-        }
-        bitmap
+    } else {
+        null
     }
 }
 
-fun decodeSampledBitmapFromResource(
+fun decodeBitmapFromResource(
     res: Resources,
     resId: Int
 ): Bitmap {
-    // First decode with inJustDecodeBounds=true to check dimensions
-    return BitmapFactory.Options().run {
-        inJustDecodeBounds = true
-        BitmapFactory.decodeResource(res, resId, this)
-
-        // Decode bitmap with inSampleSize set
+    val options = BitmapFactory.Options()
+    return options.run {
         inMutable = true
         inJustDecodeBounds = false
-
         BitmapFactory.decodeResource(res, resId, this)
     }
 }

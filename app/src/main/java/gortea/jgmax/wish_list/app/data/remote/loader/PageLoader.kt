@@ -8,14 +8,13 @@ interface PageLoader {
     fun attach(context: Context)
 
     fun attachListeners(
-        onComplete: (Bitmap) -> Unit,
+        onComplete: (Bitmap, Bitmap?) -> Unit,
         onError: () -> Unit,
         onProgress: (Int) -> Unit = { }
     )
 
     fun loadAsBitmap(
         url: String,
-        withImages: Boolean = false,
         force: Boolean = false
     )
 }

@@ -1,6 +1,6 @@
 package gortea.jgmax.wish_list.app.data.repository
 
-import gortea.jgmax.wish_list.app.data.local.dao.WishesDAO
+import gortea.jgmax.wish_list.app.data.local.room.dao.WishesDAO
 import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

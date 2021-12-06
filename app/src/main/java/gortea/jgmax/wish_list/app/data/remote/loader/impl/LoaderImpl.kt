@@ -7,15 +7,13 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.Handler
 import android.os.Looper
-import android.os.SystemClock.uptimeMillis
+import android.util.Log
 import android.util.Patterns
 import android.view.View
-import android.webkit.JavascriptInterface
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.connection.ConnectionDetector
+import gortea.jgmax.wish_list.app.data.remote.loader.data.BitmapLoaderResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,7 +27,6 @@ class LoaderImpl(
 
     private var instance: WebView? = null
     private var context: Context? = null
-    private var attachingTime = 0L
 
     init {
         context?.let { attach(it) }
@@ -42,50 +39,45 @@ class LoaderImpl(
         WebView.enableSlowWholeDocumentDraw()
 
         this.context = context
-        instance = WebView(context)
-        setViewPortWidth()
-
-        // Workaround to fix narrow page render bug
-
-        configureBitmapPageLoader({ attachingTime = uptimeMillis() }, {})
-        prepare()
-        loadUrl("about:blank")
+        instance = WebView(context).apply {
+            minimumWidth = resources.displayMetrics.run { widthPixels.coerceAtMost(heightPixels) }
+            measure(
+                View.MeasureSpec.makeMeasureSpec(minimumWidth, View.MeasureSpec.AT_MOST),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            layout(0, 0, measuredWidth, measuredHeight)
+        }
     }
 
-    override fun getAttachingTime(): Long = attachingTime
     override fun stopLoading() {
         instance?.stopLoading()
     }
 
     override fun getLoaderContext(): Context? = context
 
-    private fun setViewPortWidth() {
-        context?.apply {
-            val width = resources.displayMetrics.run { widthPixels.coerceAtMost(heightPixels) }
-            instance?.apply {
-                measure(
-                    View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.EXACTLY)
-                )
-                layout(0, 0, measuredWidth, measuredHeight)
-            }
-        }
-    }
-
     override fun configureBitmapPageLoader(
-        onComplete: (Bitmap) -> Unit,
+        onComplete: (BitmapLoaderResult) -> Unit,
         onError: () -> Unit,
         onProgress: (Int) -> Unit
     ) {
         instance?.apply {
+            var bitmapIcon: Bitmap? = null
             webViewClient = DefaultWebViewClient(
-                onComplete = {
-                    it.screenshot()?.let { bitmap -> onComplete(bitmap) } ?: onError()
+                onComplete = { view ->
+                    view.screenshot()?.let {
+                        onComplete(BitmapLoaderResult(bitmapIcon, it))
+                    } ?: onError()
                 },
                 onError = onError,
                 onProgress = onProgress,
                 context = context
             )
+            webChromeClient = object : WebChromeClient() {
+                override fun onReceivedIcon(view: WebView, icon: Bitmap) {
+                    super.onReceivedIcon(view, icon)
+                    bitmapIcon = icon
+                }
+            }
         }
     }
 
@@ -115,7 +107,6 @@ class LoaderImpl(
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun prepare(loadImages: Boolean) {
-        setViewPortWidth()
         instance?.setLayerType(View.LAYER_TYPE_NONE, null)
         instance?.resumeTimers()
         instance?.visibility = View.INVISIBLE

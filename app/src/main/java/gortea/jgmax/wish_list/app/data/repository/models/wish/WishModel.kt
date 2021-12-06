@@ -1,6 +1,6 @@
 package gortea.jgmax.wish_list.app.data.repository.models.wish
 
-import gortea.jgmax.wish_list.app.data.local.entity.Wish
+import gortea.jgmax.wish_list.app.data.local.room.entity.Wish
 
 data class WishModel(
     val url: String,
@@ -12,6 +12,7 @@ data class WishModel(
         return Wish(
             url = url,
             title = title,
+            icon = params.icon,
             currentPrice = requireNotNull(currentPrice),
             targetPrice = requireNotNull(params.targetPrice),
             notificationFrequency = params.notificationFrequency,
@@ -33,6 +34,7 @@ data class WishModel(
                     targetPrice = entity.targetPrice,
                     notificationFrequency = entity.notificationFrequency,
                     initialPrice = entity.initialPrice,
+                    icon = entity.icon,
                     position = Position(
                         left = entity.priceLeft,
                         top = entity.priceTop,

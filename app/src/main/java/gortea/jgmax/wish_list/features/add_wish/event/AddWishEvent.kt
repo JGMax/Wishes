@@ -1,5 +1,6 @@
 package gortea.jgmax.wish_list.features.add_wish.event
 
+import android.graphics.Bitmap
 import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import gortea.jgmax.wish_list.mvi.domain.Event
 
@@ -24,5 +25,5 @@ sealed class AddWishEvent : Event {
     class CheckWishSuccess(val wishModel: WishModel) : AddWishEvent()
     class CheckWish(val wishModel: WishModel) : AddWishEvent()
     class CheckUrl(val url: String) : AddWishEvent()
-    class LoadingUrlSuccess(val url: String) : AddWishEvent()
+    class LoadingUrlSuccess(val url: String, val icon: Bitmap?) : AddWishEvent()
 }

@@ -2,18 +2,18 @@ package gortea.jgmax.wish_list.app.data.remote.loader
 
 import android.content.Context
 import android.graphics.Bitmap
+import gortea.jgmax.wish_list.app.data.remote.loader.data.BitmapLoaderResult
 
 interface Loader {
     fun isAttached(): Boolean
     fun attach(context: Context)
-    fun getAttachingTime(): Long
 
     fun stopLoading()
 
     fun getLoaderContext(): Context?
 
     fun configureBitmapPageLoader(
-        onComplete: (Bitmap) -> Unit,
+        onComplete: (BitmapLoaderResult) -> Unit,
         onError: () -> Unit,
         onProgress: (Int) -> Unit = { }
     )

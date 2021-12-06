@@ -22,8 +22,8 @@
             style="@style/ToolbarControlsStyle"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginEnd="@dimen/toolbar_control_margin"
             android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="@dimen/toolbar_control_margin"
             app:icon="@drawable/animated_reload" />
     </androidx.appcompat.widget.Toolbar>
 
@@ -40,16 +40,17 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         app:layout_constrainedHeight="true"
-        app:layout_constraintBottom_toTopOf="@+id/accept_btn"
+        app:layout_constraintBottom_toTopOf="@id/accept_btn"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintVertical_bias="0.35">
+        app:layout_constraintVertical_bias="0.3">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:paddingTop="64dp">
+            android:paddingTop="80dp">
 
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/start_guideline"

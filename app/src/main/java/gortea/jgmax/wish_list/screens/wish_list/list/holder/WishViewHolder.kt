@@ -2,6 +2,7 @@ package gortea.jgmax.wish_list.screens.wish_list.list.holder
 
 import android.os.Build
 import androidx.recyclerview.widget.RecyclerView
+import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.databinding.ItemWishBinding
 import gortea.jgmax.wish_list.screens.wish_list.list.item.WishDataWrapper
 
@@ -21,6 +22,9 @@ class WishViewHolder(private val binding: ItemWishBinding) : RecyclerView.ViewHo
             }
             changeTv.setTextColor(color)
             percentTv.setTextColor(color)
+            item.data.icon?.let {
+                iconIv.setImageBitmap(it)
+            } ?: iconIv.setImageResource(R.drawable.ic_shop)
         }
     }
 }

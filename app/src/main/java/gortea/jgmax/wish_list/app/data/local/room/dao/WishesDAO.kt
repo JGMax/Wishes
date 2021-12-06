@@ -1,7 +1,7 @@
-package gortea.jgmax.wish_list.app.data.local.dao
+package gortea.jgmax.wish_list.app.data.local.room.dao
 
 import androidx.room.*
-import gortea.jgmax.wish_list.app.data.local.entity.Wish
+import gortea.jgmax.wish_list.app.data.local.room.entity.Wish
 
 @Dao
 interface WishesDAO {

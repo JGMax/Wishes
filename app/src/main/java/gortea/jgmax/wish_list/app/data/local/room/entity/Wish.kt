@@ -1,8 +1,8 @@
-package gortea.jgmax.wish_list.app.data.local.entity
+package gortea.jgmax.wish_list.app.data.local.room.entity
 
+import android.graphics.Bitmap
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 
 @Entity
 data class Wish(
@@ -12,6 +12,7 @@ data class Wish(
     val targetPrice: Long,
     val initialPrice: Long,
     val notificationFrequency: Int,
+    val icon: Bitmap?,
     val priceLeft: Int,
     val priceTop: Int,
     val priceRight: Int,

@@ -1,6 +1,5 @@
 package gortea.jgmax.wish_list.screens.wish_list
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gortea.jgmax.wish_list.features.factory.FeatureFactory
@@ -15,7 +14,6 @@ import gortea.jgmax.wish_list.screens.wish_list.event.WishListViewEvent
 import gortea.jgmax.wish_list.screens.wish_list.state.WishListViewState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.lang.IllegalStateException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,15 +48,12 @@ class WishListViewModel @Inject constructor(
     }
 
     override fun bindViewEventToFeatureEvent(event: WishListViewEvent): WishListEvent? {
-        return when(event) {
+        return when (event) {
             is WishListViewEvent.GetList -> {
                 WishListEvent.GetList
             }
             is WishListViewEvent.OnDeleteWishClick -> {
                 WishListEvent.RemoveWish(event.url)
-            }
-            is WishListViewEvent.OnSettingsClick -> {
-                null
             }
             is WishListViewEvent.OnAddWishClick -> {
                 coordinator.navigateToUpdateWish()

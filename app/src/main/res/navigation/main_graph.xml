@@ -8,12 +8,39 @@
     <fragment
         android:id="@+id/fragment_wish_list"
         android:name="gortea.jgmax.wish_list.screens.wish_list.WishListFragment"
-        tools:layout="@layout/fragment_wish_list" />
+        tools:layout="@layout/fragment_wish_list" >
+        <action
+            android:id="@+id/action_wish_list_to_add_wish"
+            app:destination="@id/fragment_add_wish"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <action
+        android:id="@+id/to_wish_list"
+        app:destination="@id/fragment_wish_list"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_right"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_left"
+        app:popUpTo="@id/fragment_wish_list"
+        app:popUpToInclusive="false"
+        app:launchSingleTop="true"/>
 
     <fragment
         android:id="@+id/fragment_add_wish"
         android:name="gortea.jgmax.wish_list.screens.add_wish.AddWishFragment"
-        tools:layout="@layout/fragment_add_wish"/>
+        tools:layout="@layout/fragment_add_wish">
+        <action
+            android:id="@+id/action_add_wish_to_select_data"
+            app:destination="@id/fragment_select_data"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
     <fragment
         android:id="@+id/fragment_select_data"
         android:name="gortea.jgmax.wish_list.screens.select_data_zone.SelectDataFragment"

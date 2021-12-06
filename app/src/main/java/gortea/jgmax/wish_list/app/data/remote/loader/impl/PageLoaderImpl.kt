@@ -2,9 +2,6 @@ package gortea.jgmax.wish_list.app.data.remote.loader.impl
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock.uptimeMillis
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
 import gortea.jgmax.wish_list.extentions.cache
@@ -15,25 +12,25 @@ import gortea.jgmax.wish_list.extentions.removeBitmapCache
 class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private var loadedUrl = ""
     private var loadingUrl = ""
-    private var loadedWithImages: Boolean? = null
     private var isBitmapCached = false
     private var isLoading = false
-    private val loaderHandler = Handler(Looper.getMainLooper())
 
-    private var onComplete: (Bitmap) -> Unit = {}
+    private var onComplete: (Bitmap, Bitmap?) -> Unit = { _, _ -> }
     private var onError: () -> Unit = {}
     private var onProgress: (Int) -> Unit = {}
 
-    private fun prepareLoader(withImages: Boolean) {
-        loader.prepare(withImages)
+    private fun prepareLoader() {
+        loader.prepare(false)
     }
 
     override fun detach() {
         loadedUrl = ""
         loadingUrl = ""
-        loadedWithImages = null
         if (isBitmapCached) {
-            loader.getLoaderContext()?.let { removeBitmapCache(CACHE_FILE_NAME, it) }
+            loader.getLoaderContext()?.let {
+                removeBitmapCache(PAGE_CACHE_FILE_NAME, it)
+                removeBitmapCache(ICON_CACHE_FILE_NAME, it)
+            }
         }
         isBitmapCached = false
         isLoading = false
@@ -41,13 +38,13 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     }
 
     override fun attach(context: Context) {
-        if(!loader.isAttached()) {
+        if (!loader.isAttached()) {
             loader.attach(context)
         }
     }
 
     override fun attachListeners(
-        onComplete: (Bitmap) -> Unit,
+        onComplete: (Bitmap, Bitmap?) -> Unit,
         onError: () -> Unit,
         onProgress: (Int) -> Unit
     ) {
@@ -56,66 +53,63 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
         this.onProgress = onProgress
     }
 
-    private fun saveResult(url: String, bitmap: Bitmap, withImages: Boolean) {
+    private fun saveResult(url: String, page: Bitmap, icon: Bitmap?) {
         loadedUrl = url
         loader.getLoaderContext()?.let {
-            bitmap.cache(CACHE_FILE_NAME, it)
+            page.cache(PAGE_CACHE_FILE_NAME, it)
+            icon?.cache(ICON_CACHE_FILE_NAME, it)
             isBitmapCached = true
         }
-        loadedWithImages = withImages
     }
 
     override fun loadAsBitmap(
         url: String,
-        withImages: Boolean,
         force: Boolean
     ) {
         if (!isLoading || url != loadingUrl || force) {
-            if (loadedUrl == url && loadedWithImages == withImages && isBitmapCached && !force) {
+            if (loadedUrl == url && isBitmapCached && !force) {
                 loader.getLoaderContext()?.let { context ->
-                    decodeBitmapFromCache(CACHE_FILE_NAME, context)?.let {
-                        onComplete(it)
+                    decodeBitmapFromCache(PAGE_CACHE_FILE_NAME, context)?.let { page ->
+                        val icon = decodeBitmapFromCache(ICON_CACHE_FILE_NAME, context)
+                        onComplete(page, icon)
                     }
                 }
             } else {
                 loader.getLoaderContext()?.let {
-                    removeBitmapCache(CACHE_FILE_NAME, it)
+                    removeBitmapCache(PAGE_CACHE_FILE_NAME, it)
+                    removeBitmapCache(ICON_CACHE_FILE_NAME, it)
                     isBitmapCached = false
                 }
-                // Workaround to fix narrow page render bug
-                val isInitialLoading = uptimeMillis() - loader.getAttachingTime() > INITIAL_TIMEOUT
 
                 if (isLoading) {
                     loader.stopLoading()
                 }
                 isLoading = true
                 loadingUrl = url
-                loaderHandler.postDelayed({
-                    loader.configureBitmapPageLoader(
-                        onComplete = {
-                            isLoading = false
-                            saveResult(url, it, withImages)
-                            loadingUrl = ""
-                            onComplete(it)
-                        },
-                        onError = {
-                            isLoading = false
-                            loadingUrl = ""
-                            onError()
-                        },
-                        onProgress = {
-                            onProgress(it)
-                        }
-                    )
-                    prepareLoader(withImages)
-                    loader.loadUrl(url)
-                }, if (isInitialLoading) INITIAL_TIMEOUT else 0L)
+                loader.configureBitmapPageLoader(
+                    onComplete = { result ->
+                        isLoading = false
+                        saveResult(url, result.page, result.icon)
+                        loadingUrl = ""
+                        onComplete(result.page, result.icon)
+                    },
+                    onError = {
+                        isLoading = false
+                        loadingUrl = ""
+                        onError()
+                    },
+                    onProgress = {
+                        onProgress(it)
+                    }
+                )
+                prepareLoader()
+                loader.loadUrl(url)
             }
         }
     }
 
     private companion object {
-        private const val INITIAL_TIMEOUT = 1500L
-        private const val CACHE_FILE_NAME = "BitmapLoaderCache"
+        private const val PAGE_CACHE_FILE_NAME = "PageLoaderCache"
+        private const val ICON_CACHE_FILE_NAME = "IconLoaderCache"
     }
 }

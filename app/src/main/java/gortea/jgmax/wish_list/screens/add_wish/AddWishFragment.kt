@@ -18,12 +18,12 @@ import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.databinding.FragmentAddWishBinding
+import gortea.jgmax.wish_list.extentions.setTextIfNoFocus
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.add_wish.action.AddWishViewAction
 import gortea.jgmax.wish_list.screens.add_wish.data.StringWrapper
 import gortea.jgmax.wish_list.screens.add_wish.event.AddWishViewEvent
 import gortea.jgmax.wish_list.screens.add_wish.state.AddWishViewState
-import gortea.jgmax.wish_list.extentions.setTextIfNoFocus
 
 
 @AndroidEntryPoint

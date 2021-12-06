@@ -16,7 +16,7 @@ class LoadUrlMiddleware(
                     if (event is SelectDataZoneEvent.LoadUrl) event.url else (event as SelectDataZoneEvent.ReloadUrl).url
                 var isLoading = true
                 pageLoader.attachListeners(
-                    onComplete = { page ->
+                    onComplete = { page, _ ->
                         isLoading = false
                         delayedEvent.onEvent(SelectDataZoneEvent.BitmapLoaded(url, page))
                     },

@@ -1,5 +1,6 @@
 package gortea.jgmax.wish_list.features.add_wish.reducer
 
+import gortea.jgmax.wish_list.extentions.cache
 import gortea.jgmax.wish_list.features.add_wish.action.AddWishAction
 import gortea.jgmax.wish_list.features.add_wish.event.AddWishEvent
 import gortea.jgmax.wish_list.features.add_wish.state.AddWishState
@@ -53,7 +54,12 @@ class AddWishReducer : Reducer<AddWishState, AddWishEvent, AddWishAction> {
             is AddWishEvent.LoadingUrlSuccess -> {
                 newState = state.copy(
                     isLoading = false,
-                    url = event.url
+                    url = event.url,
+                    wish = state.wish?.copy(
+                        params = state.wish.params.copy(
+                            icon = event.icon
+                        )
+                    )
                 )
                 newAction = AddWishAction.UrlIsLoaded
             }

@@ -1,5 +1,6 @@
 package gortea.jgmax.wish_list.screens.add_wish.data
 
+import android.graphics.Bitmap
 import gortea.jgmax.wish_list.app.data.repository.models.wish.Params
 import gortea.jgmax.wish_list.app.data.repository.models.wish.Position
 import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
@@ -10,6 +11,7 @@ data class WishData(
     val title: String,
     val targetPrice: String,
     val currentPrice: String,
+    val icon: Bitmap?,
     val position: Position?
 ) {
     fun toModel(): WishModel {
@@ -21,7 +23,8 @@ data class WishData(
                 targetPrice = targetPrice.toLongOrNull(),
                 initialPrice = currentPrice.toLongOrNull(),
                 notificationFrequency = DEFAULT_NOTIFICATION_FREQUENCY,
-                position = position
+                position = position,
+                icon = icon
             )
         )
     }
@@ -33,15 +36,18 @@ data class WishData(
                 title = model.title,
                 targetPrice = model.params.targetPrice?.toString() ?: "",
                 currentPrice = model.currentPrice?.toString() ?: "",
-                position = model.params.position
+                position = model.params.position,
+                icon = model.params.icon
             )
         }
+
         val Default = WishData(
             url = "",
             title = "",
             targetPrice = "",
             currentPrice = "",
-            position = null
+            position = null,
+            icon = null
         )
     }
 }

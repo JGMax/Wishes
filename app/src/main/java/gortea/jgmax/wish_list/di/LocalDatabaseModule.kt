@@ -7,8 +7,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import gortea.jgmax.wish_list.app.data.local.dao.WishesDAO
-import gortea.jgmax.wish_list.app.data.local.database.AppDatabase
+import gortea.jgmax.wish_list.app.data.local.room.dao.WishesDAO
+import gortea.jgmax.wish_list.app.data.local.room.database.AppDatabase
 import javax.inject.Singleton
 
 @Module

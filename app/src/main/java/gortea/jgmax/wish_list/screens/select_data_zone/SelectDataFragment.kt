@@ -14,7 +14,7 @@ import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.databinding.FragmentSelectDataZoneBinding
-import gortea.jgmax.wish_list.extentions.decodeSampledBitmapFromResource
+import gortea.jgmax.wish_list.extentions.decodeBitmapFromResource
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.select_data_zone.action.SelectDataViewAction
 import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
@@ -61,10 +61,10 @@ class SelectDataFragment :
             loadingPb.progress = state.loadingProgress
 
             state.placeHolderImageViewResource?.let {
-                pageIv.setImageBitmap(decodeSampledBitmapFromResource(resources, it))
+                pageIv.setImageBitmap(decodeBitmapFromResource(resources, it))
             } ?: pageIv.setImageBitmap(state.bitmap)
 
-            if (pageIv.isSelectionEnabled != state.isSelectionActive) {
+            if (!pageIv.isSelectionEnabled && state.isSelectionActive) {
                 startReloadAnimation(reloadBtn)
             }
 

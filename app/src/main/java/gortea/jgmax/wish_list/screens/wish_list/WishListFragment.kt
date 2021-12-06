@@ -8,10 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
-import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
-import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.databinding.FragmentWishListBinding
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.wish_list.action.WishListViewAction
@@ -42,14 +39,6 @@ class WishListFragment :
         }
     }
 
-    private fun startSettingsAnimation(view: View) {
-        val material = (view as? MaterialButton)
-        val vectorIcon =
-            AnimatedVectorDrawableCompat.create(view.context, R.drawable.animated_settings)
-        material?.icon = vectorIcon
-        vectorIcon?.start()
-    }
-
     override fun renderState(state: WishListViewState) {
         adapter.submitList(state.list.map {
             WishDataWrapper(
@@ -71,10 +60,6 @@ class WishListFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         applyEvent(WishListViewEvent.GetList)
         binding.apply {
-            settingsBtn.setOnClickListener {
-                startSettingsAnimation(it)
-                applyEvent(WishListViewEvent.OnSettingsClick)
-            }
             addFab.setOnClickListener { applyEvent(WishListViewEvent.OnAddWishClick) }
         }
     }
