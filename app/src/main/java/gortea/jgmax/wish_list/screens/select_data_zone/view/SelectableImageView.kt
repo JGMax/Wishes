@@ -9,8 +9,8 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.annotation.AttrRes
 import androidx.appcompat.widget.AppCompatImageView
-import gortea.jgmax.wish_list.app.data.remote.loader.extensions.cache
-import gortea.jgmax.wish_list.app.data.remote.loader.extensions.decodeBitmapFromCache
+import gortea.jgmax.wish_list.extentions.cache
+import gortea.jgmax.wish_list.extentions.decodeBitmapFromCache
 import kotlinx.parcelize.Parcelize
 
 
@@ -138,9 +138,10 @@ class SelectableImageView @JvmOverloads constructor(
     }
 
     override fun setImageBitmap(bm: Bitmap?) {
-        if (!isSelectionEnabled && bm != fullBitmap) {
+        if (!isSelectionEnabled && bm != fullBitmap && fullBitmap?.height != bm?.height) {
             val prevFull = fullBitmap
             fullBitmap = bm
+            startVisibleY = 0
             drawMovement(startVisibleY)
             prevFull?.recycle()
         }
@@ -209,7 +210,6 @@ class SelectableImageView @JvmOverloads constructor(
     private var startMove = 0
     private var startVisibleYMovement = 0
     private fun handleScroll(event: MotionEvent?): Boolean {
-        isDrawing = false
         event?.let {
             val handled = when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -219,12 +219,8 @@ class SelectableImageView @JvmOverloads constructor(
                 MotionEvent.ACTION_MOVE -> {
                     fullBitmap?.let {
                         startVisibleYMovement = startVisibleY + startMove - event.y.toInt()
-                        startVisibleYMovement =
-                            startVisibleYMovement.coerceIn(
-                                0..(it.height - maxViewHeight.coerceAtMost(
-                                    it.height
-                                ))
-                            )
+                        val max = (it.height - maxViewHeight.coerceAtMost(it.height))
+                        startVisibleYMovement = startVisibleYMovement.coerceIn(0..max)
                         drawMovement(startVisibleYMovement)
                     }
                     true
@@ -235,9 +231,6 @@ class SelectableImageView @JvmOverloads constructor(
                     true
                 }
                 else -> super.onTouchEvent(event)
-            }
-            if (isDrawing) {
-                drawSelection()
             }
             return handled
         }

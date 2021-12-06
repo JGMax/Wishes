@@ -14,8 +14,8 @@ import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.databinding.FragmentSelectDataZoneBinding
+import gortea.jgmax.wish_list.extentions.decodeSampledBitmapFromResource
 import gortea.jgmax.wish_list.mvi.view.AppFragment
-import gortea.jgmax.wish_list.screens.extensions.decodeSampledBitmapFromResource
 import gortea.jgmax.wish_list.screens.select_data_zone.action.SelectDataViewAction
 import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
 import gortea.jgmax.wish_list.screens.select_data_zone.state.SelectDataViewState
@@ -74,7 +74,8 @@ class SelectDataFragment :
                 pageIv.disableSelection()
             }
 
-            resultTv.text = state.recognitionResultText
+            recognizedValueTv.text = state.getRecognizedValueText(resources)
+            resultZone.isVisible = state.isRecognitionResultVisible
             applyFab.setImageResource(state.fabResource)
             applyFab.isEnabled = state.isFabEnabled
         }

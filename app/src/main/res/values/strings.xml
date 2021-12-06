@@ -6,7 +6,6 @@
     <string name="url_already_added">URL is already added</string>
     <string name="page_is_loaded">Page is loaded</string>
     <string name="incorrect_url">Incorrect url</string>
-    <string name="page_is_too_large_error">Page is too large for us :(</string>
     <string name="loading_failed">Loading failed</string>
     <string name="page_description">Page</string>
     <string name="url_field_hint">URL</string>
@@ -17,7 +16,8 @@
     <string name="accept_btn_text">Accept URL</string>
     <string name="add_btn_text">Add</string>
     <string name="apply_description">Apply</string>
-    <string name="recognized_value_desc">Recognized value: </string>
+    <string name="recognized_value_desc">Recognized value</string>
     <string name="percent">%</string>
     <string name="add_wish_desc">Add wish</string>
+    <string name="recognized_value_unknown">Unknown</string>
 </resources>

@@ -16,15 +16,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:title="@string/app_name"
         app:titleTextColor="?attr/colorOnPrimary">
-
-        <Button
-            android:id="@+id/settings_btn"
-            style="@style/ToolbarControlsStyle"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="center_vertical|end"
-            android:layout_marginEnd="@dimen/horizontal_margin"
-            app:icon="@drawable/animated_settings" />
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView

@@ -1,4 +1,4 @@
-package gortea.jgmax.wish_list.screens.extensions
+package gortea.jgmax.wish_list.extentions
 
 import android.text.InputType
 import android.widget.EditText

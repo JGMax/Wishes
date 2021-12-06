@@ -1,6 +1,5 @@
 package gortea.jgmax.wish_list.screens.add_wish
 
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,7 +23,7 @@ import gortea.jgmax.wish_list.screens.add_wish.action.AddWishViewAction
 import gortea.jgmax.wish_list.screens.add_wish.data.StringWrapper
 import gortea.jgmax.wish_list.screens.add_wish.event.AddWishViewEvent
 import gortea.jgmax.wish_list.screens.add_wish.state.AddWishViewState
-import gortea.jgmax.wish_list.screens.extensions.setTextIfNoFocus
+import gortea.jgmax.wish_list.extentions.setTextIfNoFocus
 
 
 @AndroidEntryPoint
@@ -58,14 +57,8 @@ class AddWishFragment :
             urlInput.setTextIfNoFocus(state.wish.url)
             titleInput.setTextIfNoFocus(state.wish.title)
             targetPriceInput.setTextIfNoFocus(state.wish.targetPrice)
-            currentPriceValue.text = state.getCurrentPriceValue(resources)
-            val textColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                resources.getColor(state.priceTextColor, context?.theme)
-            } else {
-                resources.getColor(state.priceTextColor)
-            }
-            currentPriceValue.setTextColor(textColor)
-            currentPriceHint.visibility = state.currentPriceHintVisibility
+
+            currentPriceTv.text = state.getCurrentPriceValue(resources)
 
             acceptBtn.isEnabled = state.isAcceptButtonEnabled
             acceptBtn.setText(state.acceptButtonText)

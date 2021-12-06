@@ -5,12 +5,11 @@ import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock.uptimeMillis
-import android.util.Log
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
-import gortea.jgmax.wish_list.app.data.remote.loader.extensions.cache
-import gortea.jgmax.wish_list.app.data.remote.loader.extensions.decodeBitmapFromCache
-import gortea.jgmax.wish_list.app.data.remote.loader.extensions.removeBitmapCache
+import gortea.jgmax.wish_list.extentions.cache
+import gortea.jgmax.wish_list.extentions.decodeBitmapFromCache
+import gortea.jgmax.wish_list.extentions.removeBitmapCache
 
 
 class PageLoaderImpl(private val loader: Loader) : PageLoader {

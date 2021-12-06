@@ -1,6 +1,7 @@
-package gortea.jgmax.wish_list.app.data.remote.loader.extensions
+package gortea.jgmax.wish_list.extentions
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import java.io.File
@@ -40,5 +41,22 @@ fun decodeBitmapFromCache(
             BitmapFactory.decodeStream(it, null, this)
         }
         bitmap
+    }
+}
+
+fun decodeSampledBitmapFromResource(
+    res: Resources,
+    resId: Int
+): Bitmap {
+    // First decode with inJustDecodeBounds=true to check dimensions
+    return BitmapFactory.Options().run {
+        inJustDecodeBounds = true
+        BitmapFactory.decodeResource(res, resId, this)
+
+        // Decode bitmap with inSampleSize set
+        inMutable = true
+        inJustDecodeBounds = false
+
+        BitmapFactory.decodeResource(res, resId, this)
     }
 }
