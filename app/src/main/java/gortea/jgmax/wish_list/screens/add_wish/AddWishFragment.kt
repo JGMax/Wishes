@@ -80,7 +80,6 @@ class AddWishFragment :
             urlInput.addTextChangedListener(TextChangeListener(urlWrapper))
             titleInput.addTextChangedListener(TextChangeListener(titleWrapper))
             targetPriceInput.addTextChangedListener(TextChangeListener(targetPriceWrapper))
-            targetPriceInput.transformationMethod = NumericKeyBoardTransformation()
             currentPriceLayout.setOnClickListener { applyEvent(AddWishViewEvent.OnPriceSelectionClick) }
             acceptBtn.setOnClickListener { applyEvent(AddWishViewEvent.OnAcceptClick) }
             reloadBtn.setOnClickListener {
@@ -127,11 +126,5 @@ class AddWishFragment :
         }
 
         override fun afterTextChanged(p0: Editable?) {}
-    }
-
-    private class NumericKeyBoardTransformation : PasswordTransformationMethod() {
-        override fun getTransformation(source: CharSequence, view: View): CharSequence {
-            return source
-        }
     }
 }

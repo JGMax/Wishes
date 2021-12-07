@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
+import gortea.jgmax.wish_list.app.data.remote.loader.data.BitmapLoaderResult
 import gortea.jgmax.wish_list.extentions.cache
 import gortea.jgmax.wish_list.extentions.decodeBitmapFromCache
 import gortea.jgmax.wish_list.extentions.removeBitmapCache
@@ -24,15 +25,9 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     }
 
     override fun detach() {
+        removeCache()
         loadedUrl = ""
         loadingUrl = ""
-        if (isBitmapCached) {
-            loader.getLoaderContext()?.let {
-                removeBitmapCache(PAGE_CACHE_FILE_NAME, it)
-                removeBitmapCache(ICON_CACHE_FILE_NAME, it)
-            }
-        }
-        isBitmapCached = false
         isLoading = false
         loader.detach()
     }
@@ -53,7 +48,46 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
         this.onProgress = onProgress
     }
 
-    private fun saveResult(url: String, page: Bitmap, icon: Bitmap?) {
+    override fun loadAsBitmap(url: String, force: Boolean) {
+        if (force || (loadedUrl != url && !isLoading) || (url != loadingUrl && isLoading)) {
+            removeCache()
+            if (isLoading) { loader.stopLoading() }
+            startLoading(url)
+        } else if (!isLoading && isBitmapCached) {
+            restoreDataFromCache(onComplete)
+        }
+    }
+
+    private fun startLoading(url: String) {
+        isLoading = true
+        loadingUrl = url
+        loader.configureBitmapPageLoader(
+            onComplete = { result -> onLoadingComplete(url, result) },
+            onError = { onLoadingError() },
+            onProgress = { onLoadingProgress(it) }
+        )
+        prepareLoader()
+        loader.loadUrl(url)
+    }
+
+    private fun onLoadingComplete(url: String, result: BitmapLoaderResult) {
+        saveCache(url, result.page, result.icon)
+        isLoading = false
+        loadingUrl = ""
+        onComplete(result.page, result.icon)
+    }
+
+    private fun onLoadingError() {
+        isLoading = false
+        loadingUrl = ""
+        onError()
+    }
+
+    private fun onLoadingProgress(progress: Int) {
+        onProgress(progress)
+    }
+
+    private fun saveCache(url: String, page: Bitmap, icon: Bitmap?) {
         loadedUrl = url
         loader.getLoaderContext()?.let {
             page.cache(PAGE_CACHE_FILE_NAME, it)
@@ -62,48 +96,21 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
         }
     }
 
-    override fun loadAsBitmap(
-        url: String,
-        force: Boolean
-    ) {
-        if (!isLoading || url != loadingUrl || force) {
-            if (loadedUrl == url && isBitmapCached && !force) {
-                loader.getLoaderContext()?.let { context ->
-                    decodeBitmapFromCache(PAGE_CACHE_FILE_NAME, context)?.let { page ->
-                        val icon = decodeBitmapFromCache(ICON_CACHE_FILE_NAME, context)
-                        onComplete(page, icon)
-                    }
-                }
-            } else {
-                loader.getLoaderContext()?.let {
-                    removeBitmapCache(PAGE_CACHE_FILE_NAME, it)
-                    removeBitmapCache(ICON_CACHE_FILE_NAME, it)
-                    isBitmapCached = false
-                }
+    private fun removeCache() {
+        if (isBitmapCached) {
+            loader.getLoaderContext()?.let {
+                removeBitmapCache(PAGE_CACHE_FILE_NAME, it)
+                removeBitmapCache(ICON_CACHE_FILE_NAME, it)
+                isBitmapCached = false
+            }
+        }
+    }
 
-                if (isLoading) {
-                    loader.stopLoading()
-                }
-                isLoading = true
-                loadingUrl = url
-                loader.configureBitmapPageLoader(
-                    onComplete = { result ->
-                        isLoading = false
-                        saveResult(url, result.page, result.icon)
-                        loadingUrl = ""
-                        onComplete(result.page, result.icon)
-                    },
-                    onError = {
-                        isLoading = false
-                        loadingUrl = ""
-                        onError()
-                    },
-                    onProgress = {
-                        onProgress(it)
-                    }
-                )
-                prepareLoader()
-                loader.loadUrl(url)
+    private fun restoreDataFromCache(onComplete: (Bitmap, Bitmap?) -> Unit) {
+        loader.getLoaderContext()?.let { context ->
+            decodeBitmapFromCache(PAGE_CACHE_FILE_NAME, context)?.let { page ->
+                val icon = decodeBitmapFromCache(ICON_CACHE_FILE_NAME, context)
+                onComplete(page, icon)
             }
         }
     }

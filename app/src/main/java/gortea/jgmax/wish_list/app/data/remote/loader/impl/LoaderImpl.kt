@@ -10,15 +10,15 @@ import android.os.Looper
 import android.util.Log
 import android.util.Patterns
 import android.view.View
-import android.webkit.*
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.connection.ConnectionDetector
 import gortea.jgmax.wish_list.app.data.remote.loader.data.BitmapLoaderResult
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 
 class LoaderImpl(
@@ -26,7 +26,11 @@ class LoaderImpl(
 ) : Loader {
 
     private var instance: WebView? = null
-    private var context: Context? = null
+    private var bitmapIcon: Bitmap? = null
+    private var isHandled = false
+    private var isCompleted = false
+    private val resultHandler = Handler(Looper.getMainLooper())
+    private var handlerJob: Job? = null
 
     init {
         context?.let { attach(it) }
@@ -38,8 +42,12 @@ class LoaderImpl(
         detach()
         WebView.enableSlowWholeDocumentDraw()
 
-        this.context = context
-        instance = WebView(context).apply {
+        instance = WebView(context)
+        setWidth()
+    }
+
+    private fun setWidth() {
+        instance?.apply {
             minimumWidth = resources.displayMetrics.run { widthPixels.coerceAtMost(heightPixels) }
             measure(
                 View.MeasureSpec.makeMeasureSpec(minimumWidth, View.MeasureSpec.AT_MOST),
@@ -53,20 +61,28 @@ class LoaderImpl(
         instance?.stopLoading()
     }
 
-    override fun getLoaderContext(): Context? = context
+    override fun getLoaderContext(): Context? = instance?.context
 
     override fun configureBitmapPageLoader(
         onComplete: (BitmapLoaderResult) -> Unit,
         onError: () -> Unit,
         onProgress: (Int) -> Unit
     ) {
+        handlerJob?.cancel()
         instance?.apply {
-            var bitmapIcon: Bitmap? = null
+            bitmapIcon = null
             webViewClient = DefaultWebViewClient(
                 onComplete = { view ->
-                    view.screenshot()?.let {
-                        onComplete(BitmapLoaderResult(bitmapIcon, it))
-                    } ?: onError()
+                    isCompleted = true
+                    handleRedirection(
+                        onRedirectingFinished = {
+                            resultHandler.post {
+                                view.screenshot()?.let {
+                                    onComplete(BitmapLoaderResult(bitmapIcon, it))
+                                } ?: onError()
+                            }
+                        }
+                    )
                 },
                 onError = onError,
                 onProgress = onProgress,
@@ -81,23 +97,24 @@ class LoaderImpl(
         }
     }
 
-    override fun configureHtmlPageLoader(
-        onComplete: (String) -> Unit,
-        onError: () -> Unit,
-        onProgress: (Int) -> Unit
+    private fun handleRedirection(
+        onRedirectingFinished: () -> Unit
     ) {
-        instance?.run {
-            removeJavascriptInterface(HtmlInterceptorWebViewClient.JSHtmlInterceptor.name)
-            addJavascriptInterface(
-                HtmlInterceptorWebViewClient.JSHtmlInterceptor(onComplete),
-                HtmlInterceptorWebViewClient.JSHtmlInterceptor.name
-            )
-            webViewClient = HtmlInterceptorWebViewClient(
-                onComplete = {},
-                onError = onError,
-                onProgress = onProgress,
-                context = context
-            )
+        if (!isHandled) {
+            handlerJob = CoroutineScope(Dispatchers.Default)
+                .launch {
+                    try {
+                        isHandled = true
+                        while (isCompleted) {
+                            isCompleted = false
+                            delay(REDIRECTION_DELAY)
+                        }
+                        isHandled = false
+                        onRedirectingFinished()
+                    } catch (e: CancellationException) {
+                        isHandled = false
+                    }
+                }
         }
     }
 
@@ -119,11 +136,11 @@ class LoaderImpl(
             setGeolocationEnabled(false)
             setSupportZoom(false)
         }
+        setWidth()
     }
 
     override fun detach() {
         clear()
-        context = null
         instance = null
     }
 
@@ -137,10 +154,6 @@ class LoaderImpl(
             pauseTimers()
             destroy()
         }
-    }
-
-    override fun screenshot(): Bitmap? {
-        return instance?.screenshot()
     }
 
     private fun WebView.screenshot(): Bitmap? {
@@ -205,7 +218,7 @@ class LoaderImpl(
 
                 if (progress == 100) {
                     stopDetection()
-                    handler.postDelayed({ onComplete(view) }, RENDER_DELAY)
+                    onComplete(view)
                 } else {
                     handler.postDelayed({ handleLoadingProcess(view) }, PROGRESS_CHECK_INTERVAL)
                 }
@@ -245,35 +258,7 @@ class LoaderImpl(
         }
     }
 
-    private class HtmlInterceptorWebViewClient(
-        onComplete: (WebView) -> Unit,
-        onError: () -> Unit,
-        onProgress: (Int) -> Unit,
-        context: Context?
-    ) : DefaultWebViewClient(
-        onComplete = { view ->
-            val javascript =
-                "javascript:window.JSBridge.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');"
-            view.evaluateJavascript(javascript, null)
-            onComplete(view)
-        },
-        onError = onError,
-        onProgress = onProgress,
-        context = context
-    ) {
-        class JSHtmlInterceptor(val onComplete: (String) -> Unit) {
-            @JavascriptInterface
-            fun showHTML(html: String) {
-                onComplete(html)
-            }
-
-            companion object {
-                const val name = "JSHtmlInterceptor"
-            }
-        }
-    }
-
     private companion object {
-        private const val RENDER_DELAY = 1500L
+        private const val REDIRECTION_DELAY = 3500L
     }
 }

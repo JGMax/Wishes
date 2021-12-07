@@ -66,6 +66,8 @@ class SelectDataFragment :
 
             if (!pageIv.isSelectionEnabled && state.isSelectionActive) {
                 startReloadAnimation(reloadBtn)
+            } else if (pageIv.isSelectionEnabled && !state.isSelectionActive) {
+                (reloadBtn as? MaterialButton)?.setIconResource(state.reloadButtonAnimatedResource)
             }
 
             if (state.isSelectionActive) {
