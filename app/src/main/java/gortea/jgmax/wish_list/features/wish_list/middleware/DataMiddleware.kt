@@ -1,6 +1,5 @@
 package gortea.jgmax.wish_list.features.wish_list.middleware
 
-import android.util.Log
 import gortea.jgmax.wish_list.app.data.repository.Repository
 import gortea.jgmax.wish_list.features.wish_list.event.WishListEvent
 import gortea.jgmax.wish_list.mvi.domain.DelayedEvent
@@ -14,7 +13,7 @@ class DataMiddleware(
     private val coroutineScope: CoroutineScope
 ) : Middleware<WishListEvent> {
     override suspend fun effect(event: WishListEvent): WishListEvent? {
-        val newEvent: WishListEvent? = when(event) {
+        val newEvent: WishListEvent? = when (event) {
             is WishListEvent.GetList -> {
                 var isLoading = true
                 coroutineScope.launch {
@@ -30,12 +29,21 @@ class DataMiddleware(
             }
             is WishListEvent.RemoveWish -> {
                 coroutineScope.launch {
+                    val wish = repository.getWish(event.url)
                     repository.deleteWish(event.url)
+                    delayedEvent.onEvent(WishListEvent.GetList)
+                    wish?.let { delayedEvent.onEvent(WishListEvent.WishRemoved(it)) }
+                }
+                null
+            }
+            is WishListEvent.AddWish -> {
+                coroutineScope.launch {
+                    repository.addWish(event.wishModel)
                     delayedEvent.onEvent(WishListEvent.GetList)
                 }
                 null
             }
-            else ->  null
+            else -> null
         }
         return newEvent
     }

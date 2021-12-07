@@ -9,12 +9,12 @@ import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.databinding.FragmentAddWishBinding
@@ -49,7 +49,7 @@ class AddWishFragment :
     }
 
     private fun showMessage(@StringRes message: Int) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     override fun renderState(state: AddWishViewState) {

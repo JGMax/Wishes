@@ -20,4 +20,6 @@
     <string name="percent">%</string>
     <string name="add_wish_desc">Add wish</string>
     <string name="recognized_value_unknown">Unknown</string>
+    <string name="item_removed">Item removed</string>
+    <string name="undo">Undo</string>
 </resources>

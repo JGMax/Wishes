@@ -14,9 +14,9 @@ interface WishesDAO {
     @Query("DELETE FROM wish WHERE url LIKE :url")
     fun deleteWish(url: String)
 
-    @Query("SELECT * FROM wish")
+    @Query("SELECT * FROM wish ORDER BY id DESC")
     fun getWishes(): List<Wish>
 
-    @Query("SELECT * FROM wish WHERE url LIKE :url")
-    fun getWishesByUrl(url: String): List<Wish>
+    @Query("SELECT * FROM wish WHERE url LIKE :url LIMIT 1")
+    fun getWishesByUrl(url: String): Wish?
 }

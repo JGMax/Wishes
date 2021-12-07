@@ -7,13 +7,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import gortea.jgmax.wish_list.R
+import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import gortea.jgmax.wish_list.databinding.FragmentWishListBinding
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.wish_list.action.WishListViewAction
 import gortea.jgmax.wish_list.screens.wish_list.event.WishListViewEvent
 import gortea.jgmax.wish_list.screens.wish_list.list.adapter.WishListAdapter
+import gortea.jgmax.wish_list.screens.wish_list.list.helper.SwipeHelper
 import gortea.jgmax.wish_list.screens.wish_list.list.item.WishDataWrapper
 import gortea.jgmax.wish_list.screens.wish_list.state.WishListViewState
 
@@ -36,6 +41,9 @@ class WishListFragment :
                 intent.data = Uri.parse(action.url)
                 startActivity(intent)
             }
+            is WishListViewAction.WishDeleted -> {
+                restoreItemSnackbar(action.wish)
+            }
         }
     }
 
@@ -54,7 +62,25 @@ class WishListFragment :
             it.adapter = adapter
             it.layoutManager = LinearLayoutManager(context)
         }
+        initSwipeToDelete()
         return binding.root
+    }
+
+    private fun initSwipeToDelete() {
+        val swipeToDeleteCallback = SwipeHelper {
+            applyEvent(WishListViewEvent.OnDeleteWishClick(adapter.get(it).data.url))
+        }
+        ItemTouchHelper(swipeToDeleteCallback).attachToRecyclerView(binding.wishesRv)
+    }
+
+    private fun restoreItemSnackbar(item: WishModel) {
+        Snackbar.make(
+            binding.root,
+            R.string.item_removed,
+            Snackbar.LENGTH_LONG
+        ).setAction(R.string.undo) {
+            applyEvent(WishListViewEvent.AddItem(item))
+        }.show()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

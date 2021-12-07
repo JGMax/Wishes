@@ -11,9 +11,9 @@ import java.lang.Exception
 
 class BitmapConverter {
     @TypeConverter
-    fun bitmapToString(bitmap: Bitmap): String? {
+    fun bitmapToString(bitmap: Bitmap?): String? {
         val out = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        bitmap?.compress(Bitmap.CompressFormat.PNG, 100, out)
         val b = out.toByteArray()
         return Base64.encodeToString(b, Base64.DEFAULT)
     }

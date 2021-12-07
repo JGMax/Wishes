@@ -18,6 +18,20 @@ class WishListAdapter : ListAdapter<WishDataWrapper, WishViewHolder>(callback) {
         holder.bind(getItem(position))
     }
 
+    override fun onBindViewHolder(
+        holder: WishViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+        } else {
+            holder.bind(getItem(position), payloads.last())
+        }
+    }
+
+    fun get(position: Int): WishDataWrapper = super.getItem(position)
+
     private companion object {
         private val callback = object : DiffUtil.ItemCallback<WishDataWrapper>() {
             override fun areItemsTheSame(
@@ -32,6 +46,13 @@ class WishListAdapter : ListAdapter<WishDataWrapper, WishViewHolder>(callback) {
                 newItem: WishDataWrapper
             ): Boolean {
                 return oldItem.data == newItem.data
+            }
+
+            override fun getChangePayload(
+                oldItem: WishDataWrapper,
+                newItem: WishDataWrapper
+            ): Any {
+                return oldItem.data.icon != newItem.data.icon
             }
         }
     }

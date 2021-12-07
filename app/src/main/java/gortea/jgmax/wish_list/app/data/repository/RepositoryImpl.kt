@@ -16,7 +16,13 @@ class RepositoryImpl(
 
     override suspend fun hasWishByUrl(url: String): Boolean {
         return withContext(Dispatchers.IO) {
-            wishesDAO.getWishesByUrl(url).isNotEmpty()
+            wishesDAO.getWishesByUrl(url) != null
+        }
+    }
+
+    override suspend fun getWish(url: String): WishModel? {
+        return withContext(Dispatchers.IO) {
+            wishesDAO.getWishesByUrl(url)?.let { WishModel.fromEntity(it) }
         }
     }
 

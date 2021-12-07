@@ -3,6 +3,7 @@ package gortea.jgmax.wish_list.app.data.repository.models.wish
 import gortea.jgmax.wish_list.app.data.local.room.entity.Wish
 
 data class WishModel(
+    val id: Long? = null,
     val url: String,
     val title: String,
     val currentPrice: Long?,
@@ -10,6 +11,7 @@ data class WishModel(
 ) {
     fun toEntity(): Wish {
         return Wish(
+            id = id ?: Wish.DEFAULT_ID,
             url = url,
             title = title,
             icon = params.icon,
@@ -27,6 +29,7 @@ data class WishModel(
     companion object {
         fun fromEntity(entity: Wish): WishModel {
             return WishModel(
+                id = entity.id,
                 url = entity.url,
                 title = entity.title,
                 currentPrice = entity.currentPrice,

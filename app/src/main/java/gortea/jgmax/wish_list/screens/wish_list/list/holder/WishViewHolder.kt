@@ -7,7 +7,7 @@ import gortea.jgmax.wish_list.databinding.ItemWishBinding
 import gortea.jgmax.wish_list.screens.wish_list.list.item.WishDataWrapper
 
 class WishViewHolder(private val binding: ItemWishBinding) : RecyclerView.ViewHolder(binding.root) {
-    fun bind(item: WishDataWrapper) {
+    fun bind(item: WishDataWrapper, payload: Any? = null) {
         binding.apply {
             root.setOnClickListener { item.onClick(item.data) }
             titleTv.text = item.data.title
@@ -22,9 +22,11 @@ class WishViewHolder(private val binding: ItemWishBinding) : RecyclerView.ViewHo
             }
             changeTv.setTextColor(color)
             percentTv.setTextColor(color)
-            item.data.icon?.let {
-                iconIv.setImageBitmap(it)
-            } ?: iconIv.setImageResource(R.drawable.ic_shop)
+            if (payload == null || (payload is Boolean && payload)) {
+                item.data.icon?.let {
+                    iconIv.setImageBitmap(it)
+                } ?: iconIv.setImageResource(R.drawable.ic_shop)
+            }
         }
     }
 }

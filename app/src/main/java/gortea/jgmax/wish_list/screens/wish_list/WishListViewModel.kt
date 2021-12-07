@@ -43,8 +43,10 @@ class WishListViewModel @Inject constructor(
         )
     }
 
-    override fun bindFeatureActionToViewAction(action: WishListAction): WishListViewAction? {
-        return null
+    override fun bindFeatureActionToViewAction(action: WishListAction): WishListViewAction {
+        return when (action) {
+            is WishListAction.ItemDeleted -> WishListViewAction.WishDeleted(action.wish)
+        }
     }
 
     override fun bindViewEventToFeatureEvent(event: WishListViewEvent): WishListEvent? {
@@ -54,6 +56,9 @@ class WishListViewModel @Inject constructor(
             }
             is WishListViewEvent.OnDeleteWishClick -> {
                 WishListEvent.RemoveWish(event.url)
+            }
+            is WishListViewEvent.AddItem -> {
+                WishListEvent.AddWish(event.wish)
             }
             is WishListViewEvent.OnAddWishClick -> {
                 coordinator.navigateToUpdateWish()

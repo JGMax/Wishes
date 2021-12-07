@@ -25,6 +25,9 @@ class WishListReducer : Reducer<WishListState, WishListEvent, WishListAction> {
                     isLoading = true
                 )
             }
+            is WishListEvent.WishRemoved -> {
+                newAction = WishListAction.ItemDeleted(event.wishModel)
+            }
         }
         return newState to newAction
     }
