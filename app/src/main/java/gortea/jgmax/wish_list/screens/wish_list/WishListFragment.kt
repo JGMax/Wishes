@@ -16,6 +16,7 @@ import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import gortea.jgmax.wish_list.databinding.FragmentWishListBinding
 import gortea.jgmax.wish_list.mvi.view.AppFragment
 import gortea.jgmax.wish_list.screens.wish_list.action.WishListViewAction
+import gortea.jgmax.wish_list.screens.wish_list.data.WishData
 import gortea.jgmax.wish_list.screens.wish_list.event.WishListViewEvent
 import gortea.jgmax.wish_list.screens.wish_list.list.adapter.WishListAdapter
 import gortea.jgmax.wish_list.screens.wish_list.list.helper.SwipeHelper
@@ -29,6 +30,11 @@ class WishListFragment :
     private var _binding: FragmentWishListBinding? = null
     private val binding: FragmentWishListBinding
         get() = requireNotNull(_binding)
+    private val footerItem = WishDataWrapper(
+        data = WishData.Empty,
+        onClick = { },
+        viewType = R.layout.item_footer
+    )
 
     private val adapter = WishListAdapter()
 
@@ -48,12 +54,14 @@ class WishListFragment :
     }
 
     override fun renderState(state: WishListViewState) {
-        adapter.submitList(state.list.map {
+        val list = state.list.map {
             WishDataWrapper(
                 data = it,
-                onClick = { item -> applyEvent(WishListViewEvent.OnItemWishClick(item.url)) }
+                onClick = { item -> applyEvent(WishListViewEvent.OnItemWishClick(item.url)) },
+                viewType = R.layout.item_wish
             )
-        })
+        }
+        adapter.submitList(if (list.isNotEmpty()) list + footerItem else list)
     }
 
     override fun provideView(inflater: LayoutInflater, container: ViewGroup?): View {

@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.core.graphics.drawable.toBitmap
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -12,7 +12,7 @@ import java.io.FileOutputStream
 fun Bitmap.cache(filename: String, context: Context) {
     val file = File(context.cacheDir, filename)
     FileOutputStream(file).use {
-        compress(Bitmap.CompressFormat.JPEG, 100, it)
+        compress(Bitmap.CompressFormat.PNG, 100, it)
     }
 }
 
@@ -54,5 +54,12 @@ fun decodeBitmapFromResource(
         inMutable = true
         inJustDecodeBounds = false
         BitmapFactory.decodeResource(res, resId, this)
+    }
+}
+
+fun Bitmap.toByteArray(): ByteArray? {
+    return ByteArrayOutputStream().use { out ->
+        compress(Bitmap.CompressFormat.PNG, 100, out)
+        out.toByteArray()
     }
 }

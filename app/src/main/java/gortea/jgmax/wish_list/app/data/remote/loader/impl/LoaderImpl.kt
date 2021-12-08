@@ -44,6 +44,8 @@ class LoaderImpl(
 
         instance = WebView(context)
         setWidth()
+        // Workaround to fix tiny pages bug
+        loadUrl("about:blank")
     }
 
     private fun setWidth() {

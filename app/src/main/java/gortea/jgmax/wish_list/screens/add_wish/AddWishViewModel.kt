@@ -1,8 +1,10 @@
 package gortea.jgmax.wish_list.screens.add_wish
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gortea.jgmax.wish_list.R
+import gortea.jgmax.wish_list.app.data.remote.loader.connection.ConnectionDetector
 import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import gortea.jgmax.wish_list.features.add_wish.action.AddWishAction
 import gortea.jgmax.wish_list.features.add_wish.event.AddWishEvent
@@ -15,6 +17,7 @@ import gortea.jgmax.wish_list.screens.add_wish.data.WishData
 import gortea.jgmax.wish_list.screens.add_wish.event.AddWishViewEvent
 import gortea.jgmax.wish_list.screens.add_wish.state.AddWishViewState
 import gortea.jgmax.wish_list.screens.select_data_zone.data.Result
+import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AddWishViewModel @Inject constructor(
     featureFactory: FeatureFactory,
-    private val coordinator: Coordinator
+    private val coordinator: Coordinator,
+    private val connectionDetector: ConnectionDetector
 ) : AppFragmentViewModel<AddWishViewState, AddWishViewEvent, AddWishViewAction, AddWishState, AddWishEvent, AddWishAction>() {
     override val mutableStateFlow = MutableStateFlow(AddWishViewState.Default)
     override val mutableActionFlow = MutableSharedFlow<AddWishViewAction?>()
@@ -31,11 +35,28 @@ class AddWishViewModel @Inject constructor(
         ?: throw IllegalAccessException("Unknown feature")
 
     private var url: String? = null
+    private var isConnected = true
 
     init {
         collectFeatureFlows()
         collectDetectionResult()
         synchronizeState()
+        connectionDetector.detect()
+        viewModelScope.launch {
+            connectionDetector.isConnected
+                .onEach {
+                    if (!isConnected && it) {
+                        handleEvent(AddWishViewEvent.ReloadUrl)
+                    }
+                    isConnected = it
+                }
+                .collect()
+        }
+    }
+
+    override fun onCleared() {
+        connectionDetector.stopDetection()
+        super.onCleared()
     }
 
     private fun checkUrlChange(state: AddWishViewState): AddWishViewState {
@@ -155,6 +176,7 @@ class AddWishViewModel @Inject constructor(
             }
             is AddWishViewEvent.OnPriceSelectionClick -> {
                 if (checkedState.isUrlAccepted == true) {
+                    Log.e("ch", checkedState.toString())
                     coordinator.navigateToSelectDataZone(
                         checkedState.wish.url,
                         checkedState.isLoading,

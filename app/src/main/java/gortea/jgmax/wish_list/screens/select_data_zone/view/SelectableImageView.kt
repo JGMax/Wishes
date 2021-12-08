@@ -11,6 +11,8 @@ import androidx.annotation.AttrRes
 import androidx.appcompat.widget.AppCompatImageView
 import gortea.jgmax.wish_list.extentions.cache
 import gortea.jgmax.wish_list.extentions.decodeBitmapFromCache
+import gortea.jgmax.wish_list.extentions.removeBitmapCache
+import gortea.jgmax.wish_list.extentions.toByteArray
 import kotlinx.parcelize.Parcelize
 
 
@@ -96,6 +98,7 @@ class SelectableImageView @JvmOverloads constructor(
     override fun onRestoreInstanceState(state: Parcelable?) {
         if (state is Bundle) {
             fullBitmap = decodeBitmapFromCache(FULL_BITMAP_CACHE_FILE, context)
+            removeBitmapCache(FULL_BITMAP_CACHE_FILE, context)
             startVisibleY = state.getInt(SCROLL_POSITION_KEY, 0)
             drawMovement(startVisibleY)
             isSelectionEnabled = state.getBoolean(IS_SELECTION_ENABLED_KEY, false)
@@ -138,7 +141,7 @@ class SelectableImageView @JvmOverloads constructor(
     }
 
     override fun setImageBitmap(bm: Bitmap?) {
-        if (!isSelectionEnabled && bm != fullBitmap && fullBitmap?.height != bm?.height) {
+        if (!isSelectionEnabled && bm?.sameAs(fullBitmap) != true) {
             val prevFull = fullBitmap
             fullBitmap = bm
             startVisibleY = 0

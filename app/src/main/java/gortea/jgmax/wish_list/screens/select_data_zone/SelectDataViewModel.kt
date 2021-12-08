@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gortea.jgmax.wish_list.R
+import gortea.jgmax.wish_list.app.data.remote.loader.connection.ConnectionDetector
 import gortea.jgmax.wish_list.app.data.repository.models.wish.Position
 import gortea.jgmax.wish_list.features.factory.FeatureFactory
 import gortea.jgmax.wish_list.features.select_data_zone.action.SelectDataZoneAction
@@ -17,17 +18,22 @@ import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
 import gortea.jgmax.wish_list.screens.select_data_zone.state.SelectDataViewState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SelectDataViewModel @Inject constructor(
     featureFactory: FeatureFactory,
-    private val coordinator: Coordinator
+    private val coordinator: Coordinator,
+    private val connectionDetector: ConnectionDetector
 ) : AppFragmentViewModel<SelectDataViewState, SelectDataViewEvent, SelectDataViewAction, SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>() {
     override val mutableStateFlow = MutableStateFlow(SelectDataViewState.Default)
     override val mutableActionFlow = MutableSharedFlow<SelectDataViewAction?>()
 
     private val digitsRegex = Regex("[^\\d]+")
+    private var isConnected = true
 
     override val feature = featureFactory
         .createFeature<SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>(
@@ -36,7 +42,23 @@ class SelectDataViewModel @Inject constructor(
         ?: throw IllegalAccessException("Unknown feature")
 
     init {
+        connectionDetector.detect()
+        viewModelScope.launch {
+            connectionDetector.isConnected
+                .onEach {
+                    if (!isConnected && it) {
+                        handleEvent(SelectDataViewEvent.ReloadUrl)
+                    }
+                    isConnected = it
+                }
+                .collect()
+        }
         collectFeatureFlows()
+    }
+
+    override fun onCleared() {
+        connectionDetector.stopDetection()
+        super.onCleared()
     }
 
     private fun onlyDigits(str: String): String = digitsRegex.replace(str, "")

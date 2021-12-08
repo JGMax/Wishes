@@ -37,5 +37,14 @@ data class WishData(
                 icon = model.params.icon
             )
         }
+        val Empty = WishData(
+            url = "",
+            title = "",
+            initialPrice = "",
+            currentPrice = "",
+            targetPrice = "",
+            change = 0L,
+            icon = null
+        )
     }
 }

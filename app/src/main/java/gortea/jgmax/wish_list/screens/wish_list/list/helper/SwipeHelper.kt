@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.view.View
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import gortea.jgmax.wish_list.R
 
 class SwipeHelper(
     val onItemSwiped: (Int) -> Unit
@@ -14,6 +15,17 @@ class SwipeHelper(
     ItemTouchHelper.LEFT
 ) {
     private val paint = Paint()
+
+    override fun getSwipeDirs(
+        recyclerView: RecyclerView,
+        viewHolder: RecyclerView.ViewHolder
+    ): Int {
+        return if (viewHolder.itemViewType == R.layout.item_footer) {
+            ItemTouchHelper.ACTION_STATE_IDLE
+        } else {
+            super.getSwipeDirs(recyclerView, viewHolder)
+        }
+    }
 
     override fun onMove(
         recyclerView: RecyclerView,

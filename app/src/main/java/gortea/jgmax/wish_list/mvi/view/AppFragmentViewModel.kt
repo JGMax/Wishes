@@ -1,6 +1,5 @@
 package gortea.jgmax.wish_list.mvi.view
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import gortea.jgmax.wish_list.mvi.domain.Action
