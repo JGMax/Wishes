@@ -1,9 +1,13 @@
 package gortea.jgmax.wish_list.features.wish_list.middleware
 
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import gortea.jgmax.wish_list.app.data.repository.Repository
 import gortea.jgmax.wish_list.features.wish_list.event.WishListEvent
 import gortea.jgmax.wish_list.mvi.domain.DelayedEvent
 import gortea.jgmax.wish_list.mvi.domain.Middleware
+import gortea.jgmax.wish_list.workers.UpdateDataWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -14,12 +18,12 @@ class DataMiddleware(
 ) : Middleware<WishListEvent> {
     override suspend fun effect(event: WishListEvent): WishListEvent? {
         val newEvent: WishListEvent? = when (event) {
-            is WishListEvent.GetList -> {
+            is WishListEvent.GetListFlow -> {
                 var isLoading = true
                 coroutineScope.launch {
-                    val list = repository.getWishes()
+                    val flow = repository.getWishesFlow()
                     isLoading = false
-                    delayedEvent.onEvent(WishListEvent.ReturnList(list))
+                    delayedEvent.onEvent(WishListEvent.ReturnFlow(flow))
                 }
                 if (isLoading) {
                     WishListEvent.Loading
@@ -31,7 +35,6 @@ class DataMiddleware(
                 coroutineScope.launch {
                     val wish = repository.getWish(event.url)
                     repository.deleteWish(event.url)
-                    delayedEvent.onEvent(WishListEvent.GetList)
                     wish?.let { delayedEvent.onEvent(WishListEvent.WishRemoved(it)) }
                 }
                 null
@@ -39,9 +42,20 @@ class DataMiddleware(
             is WishListEvent.AddWish -> {
                 coroutineScope.launch {
                     repository.addWish(event.wishModel)
-                    delayedEvent.onEvent(WishListEvent.GetList)
                 }
                 null
+            }
+            is WishListEvent.RefreshList -> {
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .setRequiresStorageNotLow(true)
+                    .setRequiresBatteryNotLow(true)
+                    .build()
+                val request =
+                    OneTimeWorkRequestBuilder<UpdateDataWorker>()
+                        .setConstraints(constraints)
+                        .build()
+                WishListEvent.EnqueueWork(request)
             }
             else -> null
         }

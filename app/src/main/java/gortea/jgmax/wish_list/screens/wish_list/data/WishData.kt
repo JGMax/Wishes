@@ -14,7 +14,7 @@ data class WishData(
     val change: Long
 ) {
     val changeString: String
-        get() = change.toString()
+        get() = if (change <= 0) change.toString() else "+$change"
     val changeColor: Int
         get() = when {
             change < 0 -> R.color.positive_change

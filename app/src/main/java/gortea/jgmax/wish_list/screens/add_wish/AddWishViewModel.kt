@@ -1,6 +1,5 @@
 package gortea.jgmax.wish_list.screens.add_wish
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gortea.jgmax.wish_list.R
@@ -10,14 +9,13 @@ import gortea.jgmax.wish_list.features.add_wish.action.AddWishAction
 import gortea.jgmax.wish_list.features.add_wish.event.AddWishEvent
 import gortea.jgmax.wish_list.features.add_wish.state.AddWishState
 import gortea.jgmax.wish_list.features.factory.FeatureFactory
-import gortea.jgmax.wish_list.mvi.view.AppFragmentViewModel
+import gortea.jgmax.wish_list.mvi.view.AppViewModel
 import gortea.jgmax.wish_list.navigation.coordinator.Coordinator
 import gortea.jgmax.wish_list.screens.add_wish.action.AddWishViewAction
 import gortea.jgmax.wish_list.screens.add_wish.data.WishData
 import gortea.jgmax.wish_list.screens.add_wish.event.AddWishViewEvent
 import gortea.jgmax.wish_list.screens.add_wish.state.AddWishViewState
 import gortea.jgmax.wish_list.screens.select_data_zone.data.Result
-import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +25,7 @@ class AddWishViewModel @Inject constructor(
     featureFactory: FeatureFactory,
     private val coordinator: Coordinator,
     private val connectionDetector: ConnectionDetector
-) : AppFragmentViewModel<AddWishViewState, AddWishViewEvent, AddWishViewAction, AddWishState, AddWishEvent, AddWishAction>() {
+) : AppViewModel<AddWishViewState, AddWishViewEvent, AddWishViewAction, AddWishState, AddWishEvent, AddWishAction>() {
     override val mutableStateFlow = MutableStateFlow(AddWishViewState.Default)
     override val mutableActionFlow = MutableSharedFlow<AddWishViewAction?>()
     override val feature = featureFactory
@@ -176,7 +174,6 @@ class AddWishViewModel @Inject constructor(
             }
             is AddWishViewEvent.OnPriceSelectionClick -> {
                 if (checkedState.isUrlAccepted == true) {
-                    Log.e("ch", checkedState.toString())
                     coordinator.navigateToSelectDataZone(
                         checkedState.wish.url,
                         checkedState.isLoading,

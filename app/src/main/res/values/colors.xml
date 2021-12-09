@@ -8,8 +8,18 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="box_bg">@color/white</color>
-    <color name="color_primary">#178DC3</color>
+    <color name="background_color">#FBFBFB</color>
+    <color name="color_primary">#D77F3F</color>
+    <color name="color_primary_variant">#FAF5F2</color>
+    <color name="color_on_primary">@color/black</color>
+    <color name="color_primary_container">#EAF5FA</color>
+    <color name="color_on_primary_container">@color/black</color>
+    <color name="color_accent">#E89C65</color>
+
+    <color name="color_surface">@color/white</color>
+    <color name="color_on_surface">@color/black</color>
+    <color name="color_snackbar_action_text">@color/color_primary</color>
+
     <color name="color_hint">#757575</color>
     <color name="input_text_color">@color/black</color>
 

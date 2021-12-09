@@ -9,7 +9,7 @@ import gortea.jgmax.wish_list.mvi.domain.State
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-abstract class AppFragmentViewModel<VS : ViewState, VE : ViewEvent, VA : ViewAction, FS : State, FE : Event, FA : Action> :
+abstract class AppViewModel<VS : ViewState, VE : ViewEvent, VA : ViewAction, FS : State, FE : Event, FA : Action> :
     ViewModel() {
     protected abstract val mutableStateFlow: MutableStateFlow<VS>
     val stateFlow: StateFlow<VS>

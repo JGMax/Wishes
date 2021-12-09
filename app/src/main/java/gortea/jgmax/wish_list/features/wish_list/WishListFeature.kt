@@ -17,7 +17,7 @@ class WishListFeature(
     coroutineScope: CoroutineScope
 ) : Feature<WishListState, WishListEvent, WishListAction>(coroutineScope) {
     override val mutableStateFlow = MutableStateFlow(WishListState.Default)
-    override val mutableEventFlow = MutableSharedFlow<WishListEvent>()
+    override val mutableEventFlow = MutableSharedFlow<WishListEvent>(replay = 1)
     override val mutableActionFlow = MutableSharedFlow<WishListAction>()
 
     private val delayedEvent = DelayedEvent<WishListEvent> {

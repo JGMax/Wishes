@@ -45,12 +45,19 @@ dependencies {
     def room_version = "2.3.0"
     def material_version = "1.6.0-alpha01"
     def text_recognition_mlkit_version = "17.0.0"
+    def work_version = "2.7.1"
+    def hilt_work_version = "1.0.0"
+    def swipe_to_refresh_version = "1.1.0"
+
+    // Work Manager
+    implementation "androidx.work:work-runtime-ktx:$work_version"
 
     // Text Recognition MLKit
     implementation "com.google.android.gms:play-services-mlkit-text-recognition:$text_recognition_mlkit_version"
 
     // Room
     implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
 
     // Lifecycle
@@ -60,6 +67,9 @@ dependencies {
     // Dagger Hilt
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
+    implementation "androidx.hilt:hilt-work:$hilt_work_version"
+    kapt "androidx.hilt:hilt-compiler:$hilt_work_version"
+
 
     // Navigation
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
@@ -67,6 +77,8 @@ dependencies {
 
     // Design
     implementation "com.google.android.material:material:$material_version"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:$swipe_to_refresh_version"
+
 
     // Core
     implementation 'androidx.core:core-ktx:1.7.0'

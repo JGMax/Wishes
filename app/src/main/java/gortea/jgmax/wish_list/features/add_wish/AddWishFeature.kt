@@ -20,7 +20,7 @@ class AddWishFeature(
     coroutineScope: CoroutineScope
 ) : Feature<AddWishState, AddWishEvent, AddWishAction>(coroutineScope) {
     override val mutableStateFlow = MutableStateFlow(AddWishState.Default)
-    override val mutableEventFlow = MutableSharedFlow<AddWishEvent>()
+    override val mutableEventFlow = MutableSharedFlow<AddWishEvent>(replay = 1)
     override val mutableActionFlow = MutableSharedFlow<AddWishAction>()
     private val delayedEvent = DelayedEvent<AddWishEvent> {
         handleEvent(it, stateFlow.value)

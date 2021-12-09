@@ -10,7 +10,7 @@ import gortea.jgmax.wish_list.features.factory.FeatureFactory
 import gortea.jgmax.wish_list.features.select_data_zone.action.SelectDataZoneAction
 import gortea.jgmax.wish_list.features.select_data_zone.event.SelectDataZoneEvent
 import gortea.jgmax.wish_list.features.select_data_zone.state.SelectDataZoneState
-import gortea.jgmax.wish_list.mvi.view.AppFragmentViewModel
+import gortea.jgmax.wish_list.mvi.view.AppViewModel
 import gortea.jgmax.wish_list.navigation.coordinator.Coordinator
 import gortea.jgmax.wish_list.screens.select_data_zone.action.SelectDataViewAction
 import gortea.jgmax.wish_list.screens.select_data_zone.data.Result
@@ -28,7 +28,7 @@ class SelectDataViewModel @Inject constructor(
     featureFactory: FeatureFactory,
     private val coordinator: Coordinator,
     private val connectionDetector: ConnectionDetector
-) : AppFragmentViewModel<SelectDataViewState, SelectDataViewEvent, SelectDataViewAction, SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>() {
+) : AppViewModel<SelectDataViewState, SelectDataViewEvent, SelectDataViewAction, SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>() {
     override val mutableStateFlow = MutableStateFlow(SelectDataViewState.Default)
     override val mutableActionFlow = MutableSharedFlow<SelectDataViewAction?>()
 

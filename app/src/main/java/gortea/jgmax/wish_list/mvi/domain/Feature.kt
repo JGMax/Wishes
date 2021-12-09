@@ -1,5 +1,6 @@
 package gortea.jgmax.wish_list.mvi.domain
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,22 +21,20 @@ abstract class Feature<S : State, E : Event, A : Action>(
 
     protected fun handleSideEvents() {
         coroutineScope.launch {
-            launch {
-                mutableEventFlow
-                    .buffer()
-                    .collect { event ->
-                        coroutineScope.launch {
-                            middlewares.forEach {
-                                it.effect(event)?.let { newEvent ->
-                                    mutableEventFlow.emit(newEvent)
-                                }
+            mutableEventFlow
+                .buffer()
+                .collect { event ->
+                    coroutineScope.launch {
+                        middlewares.forEach {
+                            it.effect(event)?.let { newEvent ->
+                                mutableEventFlow.emit(newEvent)
                             }
                         }
-                        val reduced = reducer.reduce(event, stateFlow.value)
-                        reduced.first?.let { mutableStateFlow.emit(it) }
-                        reduced.second?.let { mutableActionFlow.emit(it) }
                     }
-            }
+                    val reduced = reducer.reduce(event, stateFlow.value)
+                    reduced.first?.let { mutableStateFlow.emit(it) }
+                    reduced.second?.let { mutableActionFlow.emit(it) }
+                }
         }
     }
 

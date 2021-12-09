@@ -14,11 +14,11 @@ class WishListReducer : Reducer<WishListState, WishListEvent, WishListAction> {
         var newAction: WishListAction? = null
 
         when (event) {
-            is WishListEvent.ReturnList -> {
+            is WishListEvent.ReturnFlow -> {
                 newState = state.copy(
-                    isLoading = false,
-                    list = event.list.toList()
+                    isLoading = false
                 )
+                newAction = WishListAction.CollectList(event.list)
             }
             is WishListEvent.Loading -> {
                 newState = state.copy(
@@ -27,6 +27,9 @@ class WishListReducer : Reducer<WishListState, WishListEvent, WishListAction> {
             }
             is WishListEvent.WishRemoved -> {
                 newAction = WishListAction.ItemDeleted(event.wishModel)
+            }
+            is WishListEvent.EnqueueWork -> {
+                newAction = WishListAction.EnqueueWorkRequest(event.request)
             }
         }
         return newState to newAction

@@ -18,7 +18,7 @@ class SelectDataFeature(
     coroutineScope: CoroutineScope
 ) : Feature<SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>(coroutineScope) {
     override val mutableStateFlow = MutableStateFlow(SelectDataZoneState.Default)
-    override val mutableEventFlow = MutableSharedFlow<SelectDataZoneEvent>()
+    override val mutableEventFlow = MutableSharedFlow<SelectDataZoneEvent>(replay = 1)
     override val mutableActionFlow = MutableSharedFlow<SelectDataZoneAction>()
 
     private val delayedEvent = DelayedEvent<SelectDataZoneEvent> {

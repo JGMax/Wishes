@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="box_bg">@color/black</color>
-    <color name="color_primary">#178DC3</color>
-    <color name="color_hint">#D8D6D6</color>
-    <color name="input_text_color">@color/white</color>
+    <color name="background_color">#3F3E3E</color>
+    <color name="color_primary">#E9A16E</color>
+    <color name="color_primary_variant">#353535</color>
+    <color name="color_on_primary">#FFFFFF</color>
+    <color name="color_primary_container">#8C8C8C</color>
+    <color name="color_on_primary_container">#FBFBFB</color>
+    <color name="color_accent">#E89C65</color>
 
-    <color name="positive_change">#26A10B</color>
-    <color name="negative_change">#A80F0F</color>
+    <color name="color_surface">@color/black</color>
+    <color name="color_on_surface">@color/white</color>
+    <color name="color_snackbar_action_text">@color/black</color>
+
+    <color name="color_hint">#878686</color>
+    <color name="input_text_color">@color/color_on_primary</color>
+
+    <color name="positive_change">#4AE128</color>
+    <color name="negative_change">#DC2626</color>
     <color name="no_change">@color/color_hint</color>
 </resources>

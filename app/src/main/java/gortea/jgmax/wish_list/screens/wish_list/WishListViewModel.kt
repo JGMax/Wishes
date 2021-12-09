@@ -6,23 +6,25 @@ import gortea.jgmax.wish_list.features.factory.FeatureFactory
 import gortea.jgmax.wish_list.features.wish_list.action.WishListAction
 import gortea.jgmax.wish_list.features.wish_list.event.WishListEvent
 import gortea.jgmax.wish_list.features.wish_list.state.WishListState
-import gortea.jgmax.wish_list.mvi.view.AppFragmentViewModel
+import gortea.jgmax.wish_list.mvi.view.AppViewModel
 import gortea.jgmax.wish_list.navigation.coordinator.Coordinator
 import gortea.jgmax.wish_list.screens.wish_list.action.WishListViewAction
 import gortea.jgmax.wish_list.screens.wish_list.data.WishData
 import gortea.jgmax.wish_list.screens.wish_list.event.WishListViewEvent
 import gortea.jgmax.wish_list.screens.wish_list.state.WishListViewState
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class WishListViewModel @Inject constructor(
     featureFactory: FeatureFactory,
     private val coordinator: Coordinator
-) : AppFragmentViewModel<WishListViewState, WishListViewEvent, WishListViewAction, WishListState, WishListEvent, WishListAction>() {
+) : AppViewModel<WishListViewState, WishListViewEvent, WishListViewAction, WishListState, WishListEvent, WishListAction>() {
     override val mutableStateFlow = MutableStateFlow(WishListViewState.Default)
     override val mutableActionFlow = MutableSharedFlow<WishListViewAction?>()
+    private var listJob: Job? = null
 
     override val feature = featureFactory
         .createFeature<WishListState, WishListEvent, WishListAction>(viewModelScope)
@@ -30,6 +32,7 @@ class WishListViewModel @Inject constructor(
 
     init {
         collectFeatureFlows()
+        handleEvent(WishListViewEvent.GetListFlow)
     }
 
     override fun bindViewStateToFeatureState(state: WishListViewState): WishListState {
@@ -37,22 +40,33 @@ class WishListViewModel @Inject constructor(
     }
 
     override fun bindFeatureStateToViewState(state: WishListState): WishListViewState {
-        return stateFlow.value.copy(
-            isLoading = state.isLoading,
-            list = state.list.map { WishData.fromModel(it) }
-        )
+        return stateFlow.value.copy(isLoading = state.isLoading)
     }
 
-    override fun bindFeatureActionToViewAction(action: WishListAction): WishListViewAction {
+    override fun bindFeatureActionToViewAction(action: WishListAction): WishListViewAction? {
         return when (action) {
+            is WishListAction.CollectList -> {
+                listJob?.cancel()
+                listJob = viewModelScope.launch {
+                    action.listFlow
+                        .map { list -> list.map { WishData.fromModel(it) } }
+                        .onEach { list -> handleState(stateFlow.value.copy(list = list)) }
+                        .collect()
+                }
+                null
+            }
+            is WishListAction.EnqueueWorkRequest -> WishListViewAction.EnqueueWork(action.request)
             is WishListAction.ItemDeleted -> WishListViewAction.WishDeleted(action.wish)
         }
     }
 
     override fun bindViewEventToFeatureEvent(event: WishListViewEvent): WishListEvent? {
         return when (event) {
-            is WishListViewEvent.GetList -> {
-                WishListEvent.GetList
+            is WishListViewEvent.GetListFlow -> {
+                WishListEvent.GetListFlow
+            }
+            is WishListViewEvent.RefreshList -> {
+                WishListEvent.RefreshList
             }
             is WishListViewEvent.OnDeleteWishClick -> {
                 WishListEvent.RemoveWish(event.url)

@@ -2,6 +2,9 @@ package gortea.jgmax.wish_list.app.data.remote.loader.impl
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock.uptimeMillis
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
 import gortea.jgmax.wish_list.app.data.remote.loader.data.BitmapLoaderResult
@@ -19,6 +22,7 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private var onComplete: (Bitmap, Bitmap?) -> Unit = { _, _ -> }
     private var onError: () -> Unit = {}
     private var onProgress: (Int) -> Unit = {}
+    private val loaderHandler = Handler(Looper.getMainLooper())
 
     private fun prepareLoader() {
         loader.prepare(false)
@@ -51,8 +55,16 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     override fun loadAsBitmap(url: String, force: Boolean) {
         if (force || (loadedUrl != url && !isLoading) || (url != loadingUrl && isLoading)) {
             removeCache()
-            if (isLoading) { loader.stopLoading() }
-            startLoading(url)
+            if (isLoading) {
+                loader.stopLoading()
+            }
+            // Workaround to fix narrow page render bug
+            val isInitialLoading = uptimeMillis() - loader.getAttachingTime() > INITIAL_TIMEOUT
+
+            loaderHandler.postDelayed(
+                { startLoading(url) },
+                if (isInitialLoading) INITIAL_TIMEOUT else 0L
+            )
         } else if (!isLoading && isBitmapCached) {
             restoreDataFromCache(onComplete)
         }
@@ -118,5 +130,6 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private companion object {
         private const val PAGE_CACHE_FILE_NAME = "PageLoaderCache"
         private const val ICON_CACHE_FILE_NAME = "IconLoaderCache"
+        private const val INITIAL_TIMEOUT = 1500L
     }
 }

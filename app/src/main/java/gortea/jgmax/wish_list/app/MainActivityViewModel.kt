@@ -2,14 +2,33 @@ package gortea.jgmax.wish_list.app
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.work.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
+import gortea.jgmax.wish_list.di.ForegroundLoader
+import gortea.jgmax.wish_list.workers.UpdateDataWorker
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    private val loader: PageLoader
+    @ForegroundLoader private val loader: PageLoader
 ) : ViewModel() {
+    fun startWorker(context: Context) {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresStorageNotLow(true)
+            .setRequiresBatteryNotLow(true)
+            .build()
+        val request =
+            PeriodicWorkRequestBuilder<UpdateDataWorker>(1, TimeUnit.HOURS)
+                .setConstraints(constraints)
+                .build()
+
+        val workManager = WorkManager.getInstance(context)
+        workManager.enqueueUniquePeriodicWork(WORKER_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+    }
+
     fun attachLoader(context: Context) {
         // Workaround to fix memory leak
         loader.attach(context)
@@ -19,5 +38,9 @@ class MainActivityViewModel @Inject constructor(
         // Workaround to fix memory leak
         loader.detach()
         super.onCleared()
+    }
+
+    private companion object {
+        private const val WORKER_NAME = "PRICE_TRACKER_WORK"
     }
 }

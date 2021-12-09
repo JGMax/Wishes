@@ -2,13 +2,16 @@ package gortea.jgmax.wish_list.screens.wish_list
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.work.WorkManager
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.R
@@ -49,6 +52,13 @@ class WishListFragment :
             }
             is WishListViewAction.WishDeleted -> {
                 restoreItemSnackbar(action.wish)
+            }
+            is WishListViewAction.EnqueueWork -> {
+                WorkManager
+                    .getInstance(requireContext())
+                    .enqueue(action.request)
+                binding.refreshLayout.isRefreshing = false
+                showMessage(R.string.refresh_started)
             }
         }
     }
@@ -92,10 +102,14 @@ class WishListFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        applyEvent(WishListViewEvent.GetList)
         binding.apply {
+            refreshLayout.setOnRefreshListener { applyEvent(WishListViewEvent.RefreshList) }
             addFab.setOnClickListener { applyEvent(WishListViewEvent.OnAddWishClick) }
         }
+    }
+
+    private fun showMessage(@StringRes message: Int) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

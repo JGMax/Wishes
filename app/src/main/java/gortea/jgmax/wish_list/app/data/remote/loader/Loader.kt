@@ -8,6 +8,7 @@ interface Loader {
     fun attach(context: Context)
 
     fun stopLoading()
+    fun getAttachingTime(): Long
 
     fun getLoaderContext(): Context?
 

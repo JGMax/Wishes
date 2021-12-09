@@ -1,6 +1,7 @@
 package gortea.jgmax.wish_list.di
 
 import android.content.Context
+import android.util.Log
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,15 +23,29 @@ object LoaderModule {
         return ConnectionDetector(context)
     }
 
+    @ForegroundLoader
     @Provides
     @Singleton
     fun provideLoader(): Loader {
         return LoaderImpl()
     }
 
+    @ForegroundLoader
     @Provides
     @Singleton
-    fun providePageLoader(loader: Loader): PageLoader {
+    fun providePageLoader(@ForegroundLoader loader: Loader): PageLoader {
+        return PageLoaderImpl(loader)
+    }
+
+    @BackgroundLoader
+    @Provides
+    fun provideBackgroundLoader(): Loader {
+        return LoaderImpl().apply { Log.e("provide", toString()) }
+    }
+
+    @BackgroundLoader
+    @Provides
+    fun provideBackgroundPageLoader(@BackgroundLoader loader: Loader): PageLoader {
         return PageLoaderImpl(loader)
     }
 }

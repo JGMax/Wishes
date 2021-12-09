@@ -7,8 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
-import android.util.Patterns
+import android.os.SystemClock.uptimeMillis
 import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -29,8 +28,16 @@ class LoaderImpl(
     private var bitmapIcon: Bitmap? = null
     private var isHandled = false
     private var isCompleted = false
+    private var isLoading = false
     private val resultHandler = Handler(Looper.getMainLooper())
     private var handlerJob: Job? = null
+    private var loadingStarted = 0L
+    private var loadingProgress = -1
+    private var timeoutError = false
+    private var onError: () -> Unit = { }
+    private var onComplete: (BitmapLoaderResult) -> Unit = { }
+    private var onProgress: (Int) -> Unit = { }
+    private var attachingTime = 0L
 
     init {
         context?.let { attach(it) }
@@ -45,6 +52,8 @@ class LoaderImpl(
         instance = WebView(context)
         setWidth()
         // Workaround to fix tiny pages bug
+        configureBitmapPageLoader({ attachingTime = uptimeMillis() }, {})
+        prepare()
         loadUrl("about:blank")
     }
 
@@ -60,8 +69,12 @@ class LoaderImpl(
     }
 
     override fun stopLoading() {
+        isLoading = false
+        timeoutError = false
         instance?.stopLoading()
     }
+
+    override fun getAttachingTime(): Long = attachingTime
 
     override fun getLoaderContext(): Context? = instance?.context
 
@@ -70,24 +83,17 @@ class LoaderImpl(
         onError: () -> Unit,
         onProgress: (Int) -> Unit
     ) {
+        this.onError = onError
+        this.onComplete = onComplete
+        this.onProgress = onProgress
+
         handlerJob?.cancel()
         instance?.apply {
             bitmapIcon = null
             webViewClient = DefaultWebViewClient(
-                onComplete = { view ->
-                    isCompleted = true
-                    handleRedirection(
-                        onRedirectingFinished = {
-                            resultHandler.post {
-                                view.screenshot()?.let {
-                                    onComplete(BitmapLoaderResult(bitmapIcon, it))
-                                } ?: onError()
-                            }
-                        }
-                    )
-                },
-                onError = onError,
-                onProgress = onProgress,
+                onComplete = { onLoadingComplete() },
+                onError = { onLoadingError() },
+                onProgress = { onLoadingProgress(it) },
                 context = context
             )
             webChromeClient = object : WebChromeClient() {
@@ -99,29 +105,71 @@ class LoaderImpl(
         }
     }
 
-    private fun handleRedirection(
-        onRedirectingFinished: () -> Unit
-    ) {
+    private fun onLoadingProgress(progress: Int) {
+        if (loadingProgress != progress) {
+            loadingProgress = progress
+            loadingStarted = uptimeMillis()
+        }
+        onProgress(progress)
+    }
+
+    private fun onLoadingError() {
+        isLoading = false
+        onError()
+    }
+
+    private fun onLoadingComplete() {
+        isCompleted = true
+        handleRedirection {
+            resultHandler.post {
+                isLoading = false
+                instance?.screenshot()?.let { onComplete(BitmapLoaderResult(bitmapIcon, it)) }
+                    ?: onError()
+            }
+        }
+    }
+
+    private fun handleRedirection(onRedirectingFinished: () -> Unit) {
         if (!isHandled) {
-            handlerJob = CoroutineScope(Dispatchers.Default)
-                .launch {
-                    try {
-                        isHandled = true
-                        while (isCompleted) {
-                            isCompleted = false
-                            delay(REDIRECTION_DELAY)
-                        }
-                        isHandled = false
-                        onRedirectingFinished()
-                    } catch (e: CancellationException) {
-                        isHandled = false
+            handlerJob = CoroutineScope(Dispatchers.Default).launch {
+                try {
+                    isHandled = true
+                    while (isCompleted) {
+                        isCompleted = false
+                        delay(REDIRECTION_DELAY)
                     }
+                    isHandled = false
+                    onRedirectingFinished()
+                } catch (e: CancellationException) {
+                    isHandled = false
                 }
+            }
         }
     }
 
     override fun loadUrl(url: String) {
+        isLoading = false
+        timeoutError = false
         instance?.loadUrl(url) ?: throw IllegalStateException("Loader is detached")
+
+        loadingStarted = uptimeMillis()
+        isLoading = true
+        handleLoadingTimeout {
+            isLoading = false
+            timeoutError = true
+        }
+    }
+
+
+    private fun handleLoadingTimeout(onTimeout: () -> Unit) {
+        CoroutineScope(Dispatchers.Unconfined).launch {
+            while (isLoading && uptimeMillis() - loadingStarted < LOADING_PROGRESS_CHANGE_TIMEOUT) {
+                delay(LOADING_PROGRESS_CHANGE_CHECK_INTERVAL)
+            }
+            if (uptimeMillis() - loadingStarted >= LOADING_PROGRESS_CHANGE_TIMEOUT) {
+                onTimeout()
+            }
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -184,17 +232,17 @@ class LoaderImpl(
         }
     }
 
-    private open class DefaultWebViewClient(
+    private open inner class DefaultWebViewClient(
         private val onComplete: (view: WebView) -> Unit,
         private val onError: () -> Unit,
         private val onProgress: (Int) -> Unit,
         context: Context?
     ) : WebViewClient() {
-        private var hasError = false
         private var hasConnection = true
         private var detectorJob: Job? = null
         private val connectionDetector = context?.let { ConnectionDetector(it) }
 
+        private var isLoadingHandled = false
         private val handler = Handler(Looper.getMainLooper())
 
         private fun detectConnection() {
@@ -213,7 +261,7 @@ class LoaderImpl(
         private fun handleLoadingProcess(view: WebView) {
             val progress = view.progress
             onProgress(progress)
-            if (!hasError && hasConnection) {
+            if (hasConnection && !timeoutError) {
                 if (detectorJob == null) {
                     detectConnection()
                 }
@@ -221,6 +269,7 @@ class LoaderImpl(
                 if (progress == 100) {
                     stopDetection()
                     onComplete(view)
+                    isLoadingHandled = false
                 } else {
                     handler.postDelayed({ handleLoadingProcess(view) }, PROGRESS_CHECK_INTERVAL)
                 }
@@ -228,39 +277,31 @@ class LoaderImpl(
                 view.stopLoading()
                 stopDetection()
                 onError()
+                isLoadingHandled = false
             }
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            view?.let { handleLoadingProcess(view) }
-            hasError = !Patterns.WEB_URL.matcher(url.toString()).matches()
+            if (!isLoadingHandled) {
+                isLoadingHandled = true
+                view?.let { handleLoadingProcess(view) }
+            }
             super.onPageStarted(view, url, favicon)
         }
 
-        override fun onReceivedError(
-            view: WebView?,
-            errorCode: Int,
-            description: String?,
-            failingUrl: String?
-        ) {
-            if (errorCode == -2) {
-                hasError = true
+        override fun onPageFinished(view: WebView?, url: String?) {
+            if (!isLoadingHandled) {
+                isLoadingHandled = true
                 view?.let { handleLoadingProcess(view) }
             }
-        }
-
-        override fun onPageFinished(view: WebView?, url: String?) {
-            hasError = !Patterns.WEB_URL.matcher(url.toString()).matches()
-            view?.let { handleLoadingProcess(view) }
             super.onPageFinished(view, url)
-        }
-
-        private companion object {
-            private const val PROGRESS_CHECK_INTERVAL = 100L
         }
     }
 
     private companion object {
+        private const val PROGRESS_CHECK_INTERVAL = 100L
         private const val REDIRECTION_DELAY = 3500L
+        private const val LOADING_PROGRESS_CHANGE_TIMEOUT = 15000L
+        private const val LOADING_PROGRESS_CHANGE_CHECK_INTERVAL = 1000L
     }
 }

@@ -4,10 +4,15 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.databinding.ActivityMainBinding
 import gortea.jgmax.wish_list.navigation.NavStorage
+import gortea.jgmax.wish_list.workers.DownloadWorker
 import javax.inject.Inject
 
 
@@ -21,9 +26,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.attachLoader(applicationContext)
         setContentView(binding.root)
         setupNavController()
+        viewModel.attachLoader(applicationContext)
+        viewModel.startWorker(applicationContext)
     }
 
     private fun setupNavController() {

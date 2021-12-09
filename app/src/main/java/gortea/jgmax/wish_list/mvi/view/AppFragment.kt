@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-abstract class AppFragment<VM : AppFragmentViewModel<VS, VE, VA, *, *, *>, VS : ViewState, VE : ViewEvent, VA : ViewAction> :
+abstract class AppFragment<VM : AppViewModel<VS, VE, VA, *, *, *>, VS : ViewState, VE : ViewEvent, VA : ViewAction> :
     Fragment() {
     protected abstract val viewModel: VM
 
