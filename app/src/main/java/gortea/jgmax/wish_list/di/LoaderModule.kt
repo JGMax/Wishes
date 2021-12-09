@@ -1,7 +1,6 @@
 package gortea.jgmax.wish_list.di
 
 import android.content.Context
-import android.util.Log
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,7 +39,7 @@ object LoaderModule {
     @BackgroundLoader
     @Provides
     fun provideBackgroundLoader(): Loader {
-        return LoaderImpl().apply { Log.e("provide", toString()) }
+        return LoaderImpl()
     }
 
     @BackgroundLoader

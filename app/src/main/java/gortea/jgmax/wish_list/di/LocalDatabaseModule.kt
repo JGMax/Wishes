@@ -7,7 +7,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import gortea.jgmax.wish_list.app.data.local.room.dao.PageDAO
 import gortea.jgmax.wish_list.app.data.local.room.dao.WishesDAO
 import gortea.jgmax.wish_list.app.data.local.room.database.AppDatabase
 import javax.inject.Singleton
@@ -29,11 +28,5 @@ object LocalDatabaseModule {
     @Singleton
     fun provideWishesDao(database: AppDatabase): WishesDAO {
         return database.getWishesDao()
-    }
-
-    @Provides
-    @Singleton
-    fun providePageDao(database: AppDatabase): PageDAO {
-        return database.getPageDao()
     }
 }

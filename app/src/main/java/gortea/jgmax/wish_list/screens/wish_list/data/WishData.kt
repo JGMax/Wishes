@@ -21,6 +21,13 @@ data class WishData(
             change > 0 -> R.color.negative_change
             else -> R.color.no_change
         }
+    val notificationColor: Int?
+        get() = if (currentPrice.toLong() <= targetPrice.toLong()) {
+            R.color.positive_change
+        } else {
+            null
+        }
+
 
     companion object {
         fun fromModel(model: WishModel): WishData {
@@ -37,6 +44,7 @@ data class WishData(
                 icon = model.params.icon
             )
         }
+
         val Empty = WishData(
             url = "",
             title = "",

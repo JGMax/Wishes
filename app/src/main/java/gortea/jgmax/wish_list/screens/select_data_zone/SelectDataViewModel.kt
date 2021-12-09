@@ -36,9 +36,7 @@ class SelectDataViewModel @Inject constructor(
     private var isConnected = true
 
     override val feature = featureFactory
-        .createFeature<SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>(
-            viewModelScope
-        )
+        .createFeature<SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>(viewModelScope)
         ?: throw IllegalAccessException("Unknown feature")
 
     init {

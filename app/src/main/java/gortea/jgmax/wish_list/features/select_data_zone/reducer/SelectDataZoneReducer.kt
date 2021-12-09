@@ -14,6 +14,12 @@ class SelectDataZoneReducer :
         var newAction: SelectDataZoneAction? = null
         var newState: SelectDataZoneState? = null
         when (event) {
+            is SelectDataZoneEvent.ReturnWish -> {
+                newAction = SelectDataZoneAction.ReturnWish(event.wishModel)
+            }
+            is SelectDataZoneEvent.UnknownWish -> {
+                newAction = SelectDataZoneAction.UnknownWish
+            }
             is SelectDataZoneEvent.BitmapLoaded -> {
                 newState = state.copy(
                     isLoading = false,
@@ -51,6 +57,7 @@ class SelectDataZoneReducer :
                     recognitionInProcess = false,
                     recognitionResult = event.text
                 )
+                newAction = SelectDataZoneAction.RecognitionResult(event.text)
             }
             is SelectDataZoneEvent.RecognitionInProcess -> {
                 newState = state.copy(
@@ -62,6 +69,7 @@ class SelectDataZoneReducer :
                     recognitionInProcess = false,
                     recognitionResult = null
                 )
+                newAction = SelectDataZoneAction.RecognitionFailed
             }
             is SelectDataZoneEvent.AcceptSelection -> {
                 newAction = if (event.value?.toLongOrNull() != null && event.position != null) {

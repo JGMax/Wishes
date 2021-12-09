@@ -9,6 +9,7 @@ sealed class WishListEvent : Event {
     // View Events
     object GetListFlow : WishListEvent()
     object RefreshList : WishListEvent()
+    object GetList : WishListEvent()
 
     class AddWish(val wishModel: WishModel) : WishListEvent()
     class RemoveWish(val url: String) : WishListEvent()
@@ -18,5 +19,7 @@ sealed class WishListEvent : Event {
 
     class EnqueueWork(val request: WorkRequest) : WishListEvent()
     class WishRemoved(val wishModel: WishModel) : WishListEvent()
+
+    class ReturnList(val list: List<WishModel>) : WishListEvent()
     class ReturnFlow(val list: Flow<List<WishModel>>) : WishListEvent()
 }

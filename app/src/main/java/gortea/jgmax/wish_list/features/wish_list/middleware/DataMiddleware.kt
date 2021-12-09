@@ -31,6 +31,19 @@ class DataMiddleware(
                     null
                 }
             }
+            is WishListEvent.GetList -> {
+                var isLoading = true
+                coroutineScope.launch {
+                    val list = repository.getWishes()
+                    isLoading = false
+                    delayedEvent.onEvent(WishListEvent.ReturnList(list))
+                }
+                if (isLoading) {
+                    WishListEvent.Loading
+                } else {
+                    null
+                }
+            }
             is WishListEvent.RemoveWish -> {
                 coroutineScope.launch {
                     val wish = repository.getWish(event.url)

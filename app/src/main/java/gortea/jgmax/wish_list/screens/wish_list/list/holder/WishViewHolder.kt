@@ -27,6 +27,14 @@ class WishViewHolder(private val binding: ItemWishBinding) : RecyclerView.ViewHo
                     iconIv.setImageBitmap(it)
                 } ?: iconIv.setImageResource(R.drawable.ic_shop)
             }
+            item.data.notificationColor?.let {
+                val tint = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    root.context.getColor(it)
+                } else {
+                    root.context.resources.getColor(it)
+                }
+                notificationsIcon.setColorFilter(tint)
+            } ?: notificationsIcon.clearColorFilter()
         }
     }
 }

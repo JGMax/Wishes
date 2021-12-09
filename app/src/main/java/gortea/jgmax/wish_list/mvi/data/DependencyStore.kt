@@ -6,7 +6,7 @@ import gortea.jgmax.wish_list.app.data.repository.Repository
 import gortea.jgmax.wish_list.di.ForegroundLoader
 import javax.inject.Inject
 
-class DependencyStore @Inject constructor(
+data class DependencyStore @Inject constructor(
     val repository: Repository,
     @ForegroundLoader val pageLoader: PageLoader,
     val textRecognizer: TextRecognizer

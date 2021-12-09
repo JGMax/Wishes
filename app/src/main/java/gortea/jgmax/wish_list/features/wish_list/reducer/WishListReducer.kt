@@ -14,6 +14,12 @@ class WishListReducer : Reducer<WishListState, WishListEvent, WishListAction> {
         var newAction: WishListAction? = null
 
         when (event) {
+            is WishListEvent.ReturnList  -> {
+                newState = state.copy(
+                    isLoading = false,
+                    list = event.list
+                )
+            }
             is WishListEvent.ReturnFlow -> {
                 newState = state.copy(
                     isLoading = false

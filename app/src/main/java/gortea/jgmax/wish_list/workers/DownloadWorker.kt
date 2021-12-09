@@ -7,14 +7,17 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import gortea.jgmax.wish_list.app.data.local.room.dao.PageDAO
-import gortea.jgmax.wish_list.app.data.local.room.entity.Page
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
+import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import gortea.jgmax.wish_list.di.BackgroundLoader
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import gortea.jgmax.wish_list.features.factory.FeatureFactory
+import gortea.jgmax.wish_list.features.select_data_zone.action.SelectDataZoneAction
+import gortea.jgmax.wish_list.features.select_data_zone.event.SelectDataZoneEvent
+import gortea.jgmax.wish_list.features.select_data_zone.state.SelectDataZoneState
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
 import java.util.concurrent.CountDownLatch
 
 @HiltWorker
@@ -22,12 +25,24 @@ class DownloadWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     @BackgroundLoader private val pageLoader: PageLoader,
-    private val pageDAO: PageDAO
+    featureFactory: FeatureFactory
 ) : CoroutineWorker(appContext, workerParams) {
+
     init {
+        featureFactory.store = featureFactory.store.copy(pageLoader = pageLoader)
         Log.e("download", "init")
     }
 
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+    private val feature = featureFactory
+        .createFeature<SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>(
+            coroutineScope
+        )
+        ?: throw IllegalAccessException("Unknown feature")
+    private var state = SelectDataZoneState.Default
+
+    private val digitsRegex = Regex("[^\\d]+")
+    private fun onlyDigits(str: String): String = digitsRegex.replace(str, "")
     override suspend fun doWork(): Result {
         val url = inputData.getString(URL_KEY) ?: return Result.failure()
         val leftCrop = inputData.getInt(LEFT_CROP_KEY, -1)
@@ -39,31 +54,73 @@ class DownloadWorker @AssistedInject constructor(
         }
 
         val countDownLatch = CountDownLatch(1)
-        var result = Result.success()
+        var result = Result.failure()
         withContext(Dispatchers.Main) {
             pageLoader.attach(applicationContext)
-            pageLoader.attachListeners(
-                onComplete = { page, _ ->
-                    Log.e("page", "${page.width} ${page.height}")
-                    val cropped = cropBitmap(page, leftCrop, topCrop, rightCrop, bottomCrop)
-                    page.recycle()
-
-                    result = if (cropped == null) {
-                        Result.failure()
-                    } else {
-                        startRecognitionWorker(cropped, url)
-                        Result.success()
-                    }
-                    countDownLatch.countDown()
-                },
-                onError = {
-                    result = Result.failure()
-                    countDownLatch.countDown()
-                }
-            )
-            pageLoader.loadAsBitmap(url)
         }
 
+        feature.handleEvent(SelectDataZoneEvent.LoadUrl(url), state)
+        feature.handleEvent(SelectDataZoneEvent.GetWish(url), state)
+
+        var wishModel: WishModel? = null
+
+        val job = CoroutineScope(Dispatchers.Default).launch {
+            feature.actionFlow
+                .filter {
+                    it is SelectDataZoneAction.RenderBitmap
+                            || it is SelectDataZoneAction.RecognitionResult
+                            || it is SelectDataZoneAction.ReturnWish
+                            || it is SelectDataZoneAction.LoadingFailed
+                            || it is SelectDataZoneAction.RecognitionFailed
+                            || it is SelectDataZoneAction.UnknownWish
+                }
+                .onEach { action ->
+                    when (action) {
+                        is SelectDataZoneAction.ReturnWish -> {
+                            wishModel = action.wishModel
+                        }
+                        is SelectDataZoneAction.UnknownWish -> {
+                            result = Result.failure()
+                            countDownLatch.countDown()
+                        }
+                        is SelectDataZoneAction.LoadingFailed -> {
+                            result = Result.retry()
+                            countDownLatch.countDown()
+                        }
+                        is SelectDataZoneAction.RenderBitmap -> {
+                            val cropped =
+                                cropBitmap(action.bitmap, leftCrop, topCrop, rightCrop, bottomCrop)
+                            if (cropped != null) {
+                                feature.handleEvent(
+                                    SelectDataZoneEvent.RecognizeText(cropped),
+                                    state
+                                )
+                            } else {
+                                result = Result.retry()
+                                countDownLatch.countDown()
+                            }
+                        }
+                        is SelectDataZoneAction.RecognitionFailed -> {
+                            result = Result.retry()
+                            countDownLatch.countDown()
+                        }
+                        is SelectDataZoneAction.RecognitionResult -> {
+                            val newPrice = onlyDigits(action.result).toLongOrNull()
+                            result = if (newPrice == null || wishModel == null) {
+                                Result.retry()
+                            } else {
+                                wishModel?.let {
+                                    onRecognitionSucceeded(it, newPrice)
+                                    openNotificationWorker(it, newPrice)
+                                    Result.success()
+                                } ?: Result.failure()
+                            }
+                            countDownLatch.countDown()
+                        }
+                    }
+                }
+                .collect()
+        }
         try {
             countDownLatch.await()
         } catch (e: InterruptedException) {
@@ -72,24 +129,33 @@ class DownloadWorker @AssistedInject constructor(
         withContext(Dispatchers.Main) {
             pageLoader.detach()
         }
+        job.cancel()
+        coroutineScope.cancel()
 
         return result
     }
 
-    private fun startRecognitionWorker(bitmap: Bitmap, url: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val id = pageDAO.add(Page(0L, bitmap, url))
+    private fun openNotificationWorker(wish: WishModel, value: Long) {
+        if (value <= requireNotNull(wish.params.targetPrice)) {
             val data = Data.Builder()
-                .putLong(RecognitionWorker.ID_KEY, id)
+                .putString(NotificationWorker.PRODUCT_NAME_KEY, wish.title)
+                .putLong(NotificationWorker.CURRENT_PRICE_KEY, value)
                 .build()
-            val recognitionWorkRequest: WorkRequest =
-                OneTimeWorkRequestBuilder<RecognitionWorker>()
+            val notificationWorkRequest: WorkRequest =
+                OneTimeWorkRequestBuilder<NotificationWorker>()
                     .setInputData(data)
                     .build()
             WorkManager
                 .getInstance(applicationContext)
-                .enqueue(recognitionWorkRequest)
+                .enqueue(notificationWorkRequest)
         }
+    }
+
+    private fun onRecognitionSucceeded(wish: WishModel, value: Long) {
+        feature.handleEvent(
+            SelectDataZoneEvent.UpdateWish(wishModel = wish.copy(currentPrice = value)),
+            state
+        )
     }
 
     private fun cropBitmap(

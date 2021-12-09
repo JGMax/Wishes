@@ -11,7 +11,7 @@
     <color name="background_color">#FBFBFB</color>
     <color name="color_primary">#D77F3F</color>
     <color name="color_primary_variant">#FAF5F2</color>
-    <color name="color_on_primary">@color/black</color>
+    <color name="color_on_primary">@color/white</color>
     <color name="color_primary_container">#EAF5FA</color>
     <color name="color_on_primary_container">@color/black</color>
     <color name="color_accent">#E89C65</color>

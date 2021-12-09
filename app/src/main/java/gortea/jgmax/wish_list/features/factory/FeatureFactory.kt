@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
 class FeatureFactory @Inject constructor(
-    val store: DependencyStore
+    var store: DependencyStore
 ) {
     inline fun <reified S : State, reified E : Event, reified A : Action> createFeature(
         coroutineScope: CoroutineScope
