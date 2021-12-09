@@ -16,9 +16,11 @@
     <color name="color_on_primary_container">@color/black</color>
     <color name="color_accent">#E89C65</color>
 
-    <color name="color_surface">@color/white</color>
-    <color name="color_on_surface">@color/black</color>
+    <color name="color_surface_snackbar">@color/white</color>
+    <color name="color_on_surface_snackbar">@color/black</color>
     <color name="color_snackbar_action_text">@color/color_primary</color>
+
+    <color name="color_on_surface">#F8F1EC</color>
 
     <color name="color_hint">#757575</color>
     <color name="input_text_color">@color/black</color>

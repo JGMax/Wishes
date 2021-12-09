@@ -2,7 +2,6 @@ package gortea.jgmax.wish_list.screens.wish_list
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +10,9 @@ import androidx.annotation.StringRes
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.work.WorkManager
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import gortea.jgmax.wish_list.R
@@ -105,7 +106,19 @@ class WishListFragment :
         binding.apply {
             refreshLayout.setOnRefreshListener { applyEvent(WishListViewEvent.RefreshList) }
             addFab.setOnClickListener { applyEvent(WishListViewEvent.OnAddWishClick) }
+            preferenceBtn.setOnClickListener {
+                startSettingsAnimation(it)
+                applyEvent(WishListViewEvent.OnPreferencesClick)
+            }
         }
+    }
+
+    private fun startSettingsAnimation(view: View) {
+        val material = (view as? MaterialButton)
+        val vectorIcon =
+            AnimatedVectorDrawableCompat.create(view.context, R.drawable.animated_settings)
+        material?.icon = vectorIcon
+        vectorIcon?.start()
     }
 
     private fun showMessage(@StringRes message: Int) {

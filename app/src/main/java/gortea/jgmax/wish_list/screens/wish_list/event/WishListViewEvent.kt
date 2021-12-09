@@ -7,6 +7,7 @@ sealed class WishListViewEvent : ViewEvent {
     object GetListFlow : WishListViewEvent()
     object OnAddWishClick : WishListViewEvent()
     object RefreshList : WishListViewEvent()
+    object OnPreferencesClick : WishListViewEvent()
 
     class AddItem(val wish: WishModel) : WishListViewEvent()
     class OnItemWishClick(val url: String) : WishListViewEvent()

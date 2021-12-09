@@ -4,6 +4,7 @@
     <style name="Theme.Wishes" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryDark">#FFFFFF</item>
         <item name="colorPrimaryVariant">@color/color_primary_variant</item>
         <item name="colorOnPrimary">@color/color_on_primary</item>
         <!-- Status bar color. -->
@@ -13,6 +14,8 @@
         <item name="colorPrimaryContainer">@color/color_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/color_on_primary_container</item>
         <item name="colorAccent">@color/color_accent</item>
+
+        <item name="colorOnSurface">@color/color_on_surface</item>
 
         <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
         <item name="snackbarButtonStyle">@style/Widget.App.SnackbarButton</item>

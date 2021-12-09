@@ -6,7 +6,6 @@ import androidx.navigation.NavController
 import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.navigation.NavStorage
 import gortea.jgmax.wish_list.screens.select_data_zone.SelectDataViewModel
-import gortea.jgmax.wish_list.screens.select_data_zone.view.SelectableImageView
 import kotlinx.coroutines.flow.Flow
 
 class CoordinatorImpl(
@@ -42,6 +41,10 @@ class CoordinatorImpl(
 
     override fun navigateBack() {
         navController?.popBackStack()
+    }
+
+    override fun navigateToPreferences() {
+        navController?.navigate(R.id.action_wish_list_to_preference)
     }
 
     override fun <T> returnResult(result: T, key: String) {

@@ -31,8 +31,8 @@
 
     <style name="ThemeOverlay.App.Snackbar" parent="">
         <item name="colorPrimary">@color/color_primary</item>
-        <item name="colorSurface">@color/color_surface</item>
-        <item name="colorOnSurface">@color/color_on_surface</item>
+        <item name="colorSurface">@color/color_surface_snackbar</item>
+        <item name="colorOnSurface">@color/color_on_surface_snackbar</item>
     </style>
 
     <style name="Widget.App.Snackbar" parent="Widget.MaterialComponents.Snackbar">

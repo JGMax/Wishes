@@ -13,6 +13,8 @@
         <item name="colorOnPrimaryContainer">@color/color_on_primary_container</item>
         <item name="colorAccent">@color/color_accent</item>
 
+        <item name="colorOnSurface">@color/color_on_surface</item>
+
         <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
         <item name="snackbarButtonStyle">@style/Widget.App.SnackbarButton</item>
     </style>

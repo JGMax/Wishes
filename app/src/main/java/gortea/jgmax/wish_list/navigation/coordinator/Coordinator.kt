@@ -15,6 +15,8 @@ interface Coordinator {
 
     fun navigateBack()
 
+    fun navigateToPreferences()
+
     fun <T> returnResult(result: T, key: String = "result")
 
     fun <T> getResult(key: String = "result"): Flow<T>?

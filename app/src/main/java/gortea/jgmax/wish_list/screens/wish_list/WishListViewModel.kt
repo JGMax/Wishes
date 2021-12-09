@@ -85,6 +85,10 @@ class WishListViewModel @Inject constructor(
                 sendViewAction(WishListViewAction.OpenUrlInBrowser(event.url))
                 null
             }
+            is WishListViewEvent.OnPreferencesClick -> {
+                coordinator.navigateToPreferences()
+                null
+            }
         }
     }
 }

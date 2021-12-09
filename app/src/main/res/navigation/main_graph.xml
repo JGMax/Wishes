@@ -6,12 +6,23 @@
     app:startDestination="@id/fragment_wish_list">
 
     <fragment
+        android:id="@+id/fragment_preference"
+        android:name="gortea.jgmax.wish_list.screens.preference.PreferenceFragment" />
+
+    <fragment
         android:id="@+id/fragment_wish_list"
         android:name="gortea.jgmax.wish_list.screens.wish_list.WishListFragment"
         tools:layout="@layout/fragment_wish_list" >
         <action
             android:id="@+id/action_wish_list_to_add_wish"
             app:destination="@id/fragment_add_wish"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_wish_list_to_preference"
+            app:destination="@id/fragment_preference"
             app:enterAnim="@anim/slide_in_left"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_right"

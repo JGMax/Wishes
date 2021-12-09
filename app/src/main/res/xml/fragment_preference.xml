@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:title="@string/night_mode_category_title">
+        <SwitchPreferenceCompat
+            android:key="@string/night_mode_key"
+            android:title="@string/night_mode_title"
+            app:defaultValue="@bool/default_night_mode_enabled" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/tracker_prefs_category_title">
+        <SeekBarPreference
+            android:key="@string/tracking_frequency_key"
+            android:max="96"
+            android:summary="@string/tracking_frequency_summary"
+            android:title="@string/tracker_frequency_title"
+            app:defaultValue="@integer/default_tracking_frequency"
+            app:min="1"
+            app:showSeekBarValue="true" />
+    </PreferenceCategory>
+</PreferenceScreen>

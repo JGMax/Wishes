@@ -7,13 +7,23 @@
     android:background="@color/background_color">
 
     <androidx.appcompat.widget.Toolbar
-        style="@style/ToolbarStyle"
         android:id="@+id/toolbar"
+        style="@style/ToolbarStyle"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/preference_btn"
+            style="@style/ToolbarControlsStyle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="@dimen/horizontal_margin"
+            app:icon="@drawable/animated_settings" />
+    </androidx.appcompat.widget.Toolbar>
 
     <View
         android:id="@+id/toolbar_line"
