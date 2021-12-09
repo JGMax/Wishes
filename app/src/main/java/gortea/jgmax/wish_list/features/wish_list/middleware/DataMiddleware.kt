@@ -1,5 +1,6 @@
 package gortea.jgmax.wish_list.features.wish_list.middleware
 
+import android.util.Log
 import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder

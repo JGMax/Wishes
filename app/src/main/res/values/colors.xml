@@ -20,7 +20,8 @@
     <color name="color_on_surface_snackbar">@color/black</color>
     <color name="color_snackbar_action_text">@color/color_primary</color>
 
-    <color name="color_on_surface">#F8F1EC</color>
+    <color name="color_on_surface">#ACA9A8</color>
+
 
     <color name="color_hint">#757575</color>
     <color name="input_text_color">@color/black</color>

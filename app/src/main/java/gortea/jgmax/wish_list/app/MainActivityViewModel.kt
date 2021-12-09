@@ -1,7 +1,6 @@
 package gortea.jgmax.wish_list.app
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.work.*
 import dagger.hilt.android.lifecycle.HiltViewModel

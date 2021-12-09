@@ -9,7 +9,7 @@ data class WishListState(
 ) : State {
     companion object {
         val Default = WishListState(
-            isLoading = false,
+            isLoading = true,
             list = listOf()
         )
     }

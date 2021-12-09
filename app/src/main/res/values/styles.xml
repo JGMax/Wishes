@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="TextInputEditTextStyle" parent="ThemeOverlay.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:textColor">@color/input_text_color</item>
+    </style>
 
     <style name="ToolbarStyle">
         <item name="android:elevation">4dp</item>

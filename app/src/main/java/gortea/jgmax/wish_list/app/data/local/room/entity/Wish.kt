@@ -13,7 +13,6 @@ data class Wish(
     val currentPrice: Long,
     val targetPrice: Long,
     val initialPrice: Long,
-    val notificationFrequency: Int,
     val icon: Bitmap?,
     val priceLeft: Int,
     val priceTop: Int,

@@ -6,6 +6,5 @@ data class Params(
     val targetPrice: Long?,
     val position: Position?,
     val initialPrice: Long?,
-    val icon: Bitmap?,
-    val notificationFrequency: Int
+    val icon: Bitmap?
 )

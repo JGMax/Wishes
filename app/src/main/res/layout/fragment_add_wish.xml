@@ -7,13 +7,13 @@
     android:background="@color/background_color">
 
     <androidx.appcompat.widget.Toolbar
-        style="@style/ToolbarStyle"
         android:id="@+id/toolbar"
+        style="@style/ToolbarStyle"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" >
+        app:layout_constraintTop_toTopOf="parent">
 
         <Button
             android:id="@+id/reload_btn"
@@ -89,6 +89,7 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/url_input"
+                    style="@style/TextInputEditTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textUri" />
@@ -108,6 +109,7 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/title_input"
+                    style="@style/TextInputEditTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textCapSentences" />
@@ -127,6 +129,7 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/target_price_input"
+                    style="@style/TextInputEditTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="numberSigned" />

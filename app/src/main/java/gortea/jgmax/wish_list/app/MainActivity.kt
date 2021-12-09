@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         viewModel.attachLoader(applicationContext)
         viewModel.startWorker(this, defaultFrequency, true)
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        setDarkModeEnabled(prefs.getBoolean(nightModeKey, defaultNightModeEnabled))
         prefs.registerOnSharedPreferenceChangeListener(this)
     }
 
@@ -64,13 +65,17 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                 )
                 nightModeKey -> {
                     val enabled = preferences.getBoolean(key, defaultNightModeEnabled)
-                    if (enabled) {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                    } else {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                    }
+                    setDarkModeEnabled(enabled)
                 }
             }
+        }
+    }
+
+    private fun setDarkModeEnabled(isEnabled: Boolean) {
+        if (isEnabled) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
     }
 }

@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import gortea.jgmax.wish_list.app.data.repository.models.wish.Params
 import gortea.jgmax.wish_list.app.data.repository.models.wish.Position
 import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
-import gortea.jgmax.wish_list.app.data.repository.models.wish.constants.DEFAULT_NOTIFICATION_FREQUENCY
 
 data class WishData(
     val url: String,
@@ -22,7 +21,6 @@ data class WishData(
             params = Params(
                 targetPrice = targetPrice.toLongOrNull(),
                 initialPrice = currentPrice.toLongOrNull(),
-                notificationFrequency = DEFAULT_NOTIFICATION_FREQUENCY,
                 position = position,
                 icon = icon
             )

@@ -11,7 +11,7 @@
     <PreferenceCategory android:title="@string/tracker_prefs_category_title">
         <SeekBarPreference
             android:key="@string/tracking_frequency_key"
-            android:max="96"
+            android:max="48"
             android:summary="@string/tracking_frequency_summary"
             android:title="@string/tracker_frequency_title"
             app:defaultValue="@integer/default_tracking_frequency"

@@ -14,7 +14,10 @@ import gortea.jgmax.wish_list.features.wish_list.state.WishListState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.concurrent.CountDownLatch
 
@@ -36,22 +39,31 @@ class UpdateDataWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val countDownLatch = CountDownLatch(1)
+        var result = Result.failure()
         feature.handleEvent(WishListEvent.GetList, state)
         val job = CoroutineScope(Dispatchers.Default).launch {
+            val workManager = WorkManager
+                .getInstance(applicationContext)
             feature.stateFlow
-                .filter { !it.isLoading }
+                .filter { state -> !state.isLoading }
+                .map { state -> state.list }
                 .onEach {
-                    if (it.list.isEmpty()) {
+                    if (it.isEmpty()) {
+                        result = Result.failure()
                         countDownLatch.countDown()
                     }
                 }
-                .filter { it.list.isNotEmpty() }
-                .map { state -> state.list.map { createWorkerRequest(it) } }
-                .onEach {
-                    Log.e("collected", "collected")
-                    WorkManager
-                        .getInstance(applicationContext)
-                        .enqueue(it)
+                .filter { it.isNotEmpty() }
+                .map { list -> list.map { createWorkerRequest(it) } }
+                .onEach { list ->
+                    var continuation = workManager.beginWith(list.first())
+                    list.forEachIndexed { i, it ->
+                        if (i > 0) {
+                            continuation = continuation.then(it)
+                        }
+                    }
+                    continuation.enqueue()
+                    result = Result.success()
                     countDownLatch.countDown()
                 }
                 .collect()
@@ -63,10 +75,10 @@ class UpdateDataWorker @AssistedInject constructor(
         }
         job.cancel()
         coroutineScope.cancel()
-        return Result.success()
+        return result
     }
 
-    private fun createWorkerRequest(wish: WishModel): WorkRequest {
+    private fun createWorkerRequest(wish: WishModel): OneTimeWorkRequest {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .setRequiresStorageNotLow(true)
