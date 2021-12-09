@@ -23,7 +23,7 @@
     <string name="item_removed">Item removed</string>
     <string name="undo">Undo</string>
 
-    <string name="notification_title">Price reach the target value!</string>
+    <string name="notification_title">Price reaches the target value!</string>
     <string name="refresh_started">Refresh started</string>
 
     <string name="tracker_prefs_category_title">Price tracking</string>

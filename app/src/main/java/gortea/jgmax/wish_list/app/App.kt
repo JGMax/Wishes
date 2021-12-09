@@ -17,4 +17,3 @@ class App : Application(), Configuration.Provider {
             .setWorkerFactory(workerFactory)
             .build()
 }
-

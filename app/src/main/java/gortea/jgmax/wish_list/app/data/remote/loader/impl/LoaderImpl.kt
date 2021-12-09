@@ -16,9 +16,13 @@ import android.webkit.WebViewClient
 import gortea.jgmax.wish_list.app.data.remote.loader.Loader
 import gortea.jgmax.wish_list.app.data.remote.loader.connection.ConnectionDetector
 import gortea.jgmax.wish_list.app.data.remote.loader.data.BitmapLoaderResult
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
-
+import kotlinx.coroutines.launch
 
 class LoaderImpl(
     context: Context? = null

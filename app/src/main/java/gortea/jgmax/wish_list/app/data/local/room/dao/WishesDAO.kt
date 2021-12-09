@@ -1,6 +1,10 @@
 package gortea.jgmax.wish_list.app.data.local.room.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import gortea.jgmax.wish_list.app.data.local.room.entity.Wish
 import kotlinx.coroutines.flow.Flow
 

@@ -67,12 +67,12 @@ class DownloadWorker @AssistedInject constructor(
         val job = CoroutineScope(Dispatchers.Default).launch {
             feature.actionFlow
                 .filter {
-                    it is SelectDataZoneAction.RenderBitmap
-                            || it is SelectDataZoneAction.RecognitionResult
-                            || it is SelectDataZoneAction.ReturnWish
-                            || it is SelectDataZoneAction.LoadingFailed
-                            || it is SelectDataZoneAction.RecognitionFailed
-                            || it is SelectDataZoneAction.UnknownWish
+                    it is SelectDataZoneAction.RenderBitmap ||
+                            it is SelectDataZoneAction.RecognitionResult ||
+                            it is SelectDataZoneAction.ReturnWish ||
+                            it is SelectDataZoneAction.LoadingFailed ||
+                            it is SelectDataZoneAction.RecognitionFailed ||
+                            it is SelectDataZoneAction.UnknownWish
                 }
                 .onEach { action ->
                     when (action) {

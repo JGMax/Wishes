@@ -27,7 +27,6 @@ import gortea.jgmax.wish_list.screens.wish_list.list.helper.SwipeHelper
 import gortea.jgmax.wish_list.screens.wish_list.list.item.WishDataWrapper
 import gortea.jgmax.wish_list.screens.wish_list.state.WishListViewState
 
-
 @AndroidEntryPoint
 class WishListFragment :
     AppFragment<WishListViewModel, WishListViewState, WishListViewEvent, WishListViewAction>() {

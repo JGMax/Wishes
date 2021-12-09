@@ -1,14 +1,10 @@
 package gortea.jgmax.wish_list.app.data.local.room.converters
 
-import android.graphics.BitmapFactory
-
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.room.TypeConverter
 import gortea.jgmax.wish_list.extentions.toByteArray
-import java.io.ByteArrayOutputStream
-import java.lang.Exception
-
 
 class BitmapConverter {
     @TypeConverter

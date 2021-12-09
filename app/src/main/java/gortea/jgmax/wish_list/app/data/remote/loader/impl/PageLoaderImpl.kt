@@ -12,7 +12,6 @@ import gortea.jgmax.wish_list.extentions.cache
 import gortea.jgmax.wish_list.extentions.decodeBitmapFromCache
 import gortea.jgmax.wish_list.extentions.removeBitmapCache
 
-
 class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private var loadedUrl = ""
     private var loadingUrl = ""
