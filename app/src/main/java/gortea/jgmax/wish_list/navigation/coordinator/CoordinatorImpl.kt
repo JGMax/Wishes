@@ -1,6 +1,7 @@
 package gortea.jgmax.wish_list.navigation.coordinator
 
 import android.os.Bundle
+import android.util.Log
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import gortea.jgmax.wish_list.R

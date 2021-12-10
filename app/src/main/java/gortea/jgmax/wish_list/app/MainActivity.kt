@@ -1,7 +1,10 @@
 package gortea.jgmax.wish_list.app
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.PersistableBundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -32,6 +35,11 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     @Inject
     lateinit var navStorage: NavStorage
 
+    override fun onActivityReenter(resultCode: Int, data: Intent?) {
+        setupNavController()
+        super.onActivityReenter(resultCode, data)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -49,10 +57,17 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
     override fun onDestroy() {
-        navStorage.navController = null
+        destroyNavController()
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         prefs.unregisterOnSharedPreferenceChangeListener(this)
         super.onDestroy()
+    }
+
+    private fun destroyNavController() {
+        val host = supportFragmentManager.findFragmentById(R.id.container) as NavHostFragment
+        if (navStorage.navController == host.navController) {
+            navStorage.navController = null
+        }
     }
 
     override fun onSharedPreferenceChanged(preferences: SharedPreferences?, key: String?) {
