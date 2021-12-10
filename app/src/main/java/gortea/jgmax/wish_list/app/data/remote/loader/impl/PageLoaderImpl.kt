@@ -23,6 +23,9 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private var onProgress: (Int) -> Unit = {}
     private val loaderHandler = Handler(Looper.getMainLooper())
 
+    private val pageCacheFileName = toString() + "_PAGE_CACHE"
+    private val iconCacheFileName = toString() + "_ICON_CACHE"
+
     private fun prepareLoader() {
         loader.prepare(false)
     }
@@ -101,8 +104,8 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private fun saveCache(url: String, page: Bitmap, icon: Bitmap?) {
         loadedUrl = url
         loader.getLoaderContext()?.let {
-            page.cache(PAGE_CACHE_FILE_NAME, it)
-            icon?.cache(ICON_CACHE_FILE_NAME, it)
+            page.cache(pageCacheFileName, it)
+            icon?.cache(iconCacheFileName, it)
             isBitmapCached = true
         }
     }
@@ -110,8 +113,8 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private fun removeCache() {
         if (isBitmapCached) {
             loader.getLoaderContext()?.let {
-                removeBitmapCache(PAGE_CACHE_FILE_NAME, it)
-                removeBitmapCache(ICON_CACHE_FILE_NAME, it)
+                removeBitmapCache(pageCacheFileName, it)
+                removeBitmapCache(iconCacheFileName, it)
                 isBitmapCached = false
             }
         }
@@ -119,16 +122,14 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
 
     private fun restoreDataFromCache(onComplete: (Bitmap, Bitmap?) -> Unit) {
         loader.getLoaderContext()?.let { context ->
-            decodeBitmapFromCache(PAGE_CACHE_FILE_NAME, context)?.let { page ->
-                val icon = decodeBitmapFromCache(ICON_CACHE_FILE_NAME, context)
+            decodeBitmapFromCache(pageCacheFileName, context)?.let { page ->
+                val icon = decodeBitmapFromCache(iconCacheFileName, context)
                 onComplete(page, icon)
             }
         }
     }
 
     private companion object {
-        private const val PAGE_CACHE_FILE_NAME = "PageLoaderCache"
-        private const val ICON_CACHE_FILE_NAME = "IconLoaderCache"
         private const val INITIAL_TIMEOUT = 1500L
     }
 }
