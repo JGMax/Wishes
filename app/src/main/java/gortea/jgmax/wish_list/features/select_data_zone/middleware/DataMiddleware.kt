@@ -32,6 +32,7 @@ class DataMiddleware(
             is SelectDataZoneEvent.UpdateWish -> {
                 coroutineScope.launch {
                     repository.updateWish(event.wishModel)
+                    delayedEvent.onEvent(SelectDataZoneEvent.WishUpdated)
                 }
                 null
             }

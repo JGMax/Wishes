@@ -16,6 +16,7 @@ sealed class SelectDataZoneEvent : Event {
     class UpdateWish(val wishModel: WishModel) : SelectDataZoneEvent()
 
     // Side Events
+    object WishUpdated : SelectDataZoneEvent()
     object RecognitionInProcess : SelectDataZoneEvent()
     object RecognitionFailed : SelectDataZoneEvent()
     object Loading : SelectDataZoneEvent()

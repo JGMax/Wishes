@@ -39,7 +39,7 @@ class WishListFragment :
         viewType = R.layout.item_footer
     )
 
-    private var adapter: WishListAdapter? = WishListAdapter()
+    private val adapter = WishListAdapter()
 
     override val viewModel: WishListViewModel by viewModels()
 
@@ -71,7 +71,7 @@ class WishListFragment :
                 viewType = R.layout.item_wish
             )
         }
-        adapter?.submitList(if (list.isNotEmpty()) list + footerItem else list)
+        adapter.submitList(if (list.isNotEmpty()) list + footerItem else list)
     }
 
     override fun provideView(inflater: LayoutInflater, container: ViewGroup?): View {
@@ -86,7 +86,7 @@ class WishListFragment :
 
     private fun initSwipeToDelete() {
         val swipeToDeleteCallback = SwipeHelper {
-            applyEvent(WishListViewEvent.OnDeleteWishClick(requireNotNull(adapter).get(it).data.url))
+            applyEvent(WishListViewEvent.OnDeleteWishClick(adapter.get(it).data.url))
         }
         ItemTouchHelper(swipeToDeleteCallback).attachToRecyclerView(binding.wishesRv)
     }
@@ -127,10 +127,5 @@ class WishListFragment :
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
-    }
-
-    override fun onDestroy() {
-        adapter = null
-        super.onDestroy()
     }
 }

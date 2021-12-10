@@ -11,6 +11,7 @@ sealed class SelectDataZoneAction : Action {
     object LoadingFailed : SelectDataZoneAction()
     object UnknownWish : SelectDataZoneAction()
     object RecognitionFailed : SelectDataZoneAction()
+    object WishUpdated : SelectDataZoneAction()
 
     class ReturnValue(
         val value: String,

@@ -14,6 +14,9 @@ class SelectDataZoneReducer :
         var newAction: SelectDataZoneAction? = null
         var newState: SelectDataZoneState? = null
         when (event) {
+            is SelectDataZoneEvent.WishUpdated -> {
+                newAction = SelectDataZoneAction.WishUpdated
+            }
             is SelectDataZoneEvent.ReturnWish -> {
                 newAction = SelectDataZoneAction.ReturnWish(event.wishModel)
             }

@@ -72,7 +72,8 @@ class DownloadWorker @AssistedInject constructor(
                             it is SelectDataZoneAction.ReturnWish ||
                             it is SelectDataZoneAction.LoadingFailed ||
                             it is SelectDataZoneAction.RecognitionFailed ||
-                            it is SelectDataZoneAction.UnknownWish
+                            it is SelectDataZoneAction.UnknownWish ||
+                            it is SelectDataZoneAction.WishUpdated
                 }
                 .onEach { action ->
                     when (action) {
@@ -107,6 +108,7 @@ class DownloadWorker @AssistedInject constructor(
                         is SelectDataZoneAction.RecognitionResult -> {
                             val newPrice = onlyDigits(action.result).toLongOrNull()
                             result = if (newPrice == null || wishModel == null) {
+                                countDownLatch.countDown()
                                 Result.retry()
                             } else {
                                 wishModel?.let {
@@ -115,6 +117,9 @@ class DownloadWorker @AssistedInject constructor(
                                     Result.success()
                                 } ?: Result.failure()
                             }
+                        }
+                        is SelectDataZoneAction.WishUpdated -> {
+                            result = Result.success()
                             countDownLatch.countDown()
                         }
                     }
