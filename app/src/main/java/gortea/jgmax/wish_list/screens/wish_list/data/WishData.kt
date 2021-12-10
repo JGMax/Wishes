@@ -33,7 +33,11 @@ data class WishData(
         fun fromModel(model: WishModel): WishData {
             val currentPrice = model.currentPrice ?: 0
             val initialPrice = model.params.initialPrice ?: 1
-            val change = ((currentPrice.toFloat() / initialPrice.toFloat()) - 1) * 100
+            val change = when {
+                initialPrice != 0L -> ((currentPrice.toFloat() / initialPrice.toFloat()) - 1) * 100
+                currentPrice != 0L -> Long.MAX_VALUE
+                else -> 0
+            }
             return WishData(
                 url = model.url,
                 title = model.title,
