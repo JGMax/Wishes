@@ -19,7 +19,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.app.MainActivity
-import kotlin.random.Random
 
 class NotificationWorker @AssistedInject constructor(
     @Assisted appContext: Context,
@@ -30,28 +29,25 @@ class NotificationWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
-        val name = inputData.getString(PRODUCT_NAME_KEY) ?: return Result.failure()
-        val currentPrice = inputData.getLong(CURRENT_PRICE_KEY, -1)
-        if (currentPrice == -1L) {
-            return Result.failure()
-        }
-        sendNotification(name.hashCode(), name, currentPrice)
+        val id = inputData.getInt(ID_KEY, 0)
+        val title = inputData.getString(TITLE_KEY) ?: return Result.failure()
+        val subtitle = inputData.getString(SUBTITLE_KEY) ?:  return Result.failure()
+        sendNotification(id, title, subtitle)
         return Result.success()
     }
 
-    private fun sendNotification(id: Int, productName: String, currentPrice: Long) {
+    private fun sendNotification(id: Int, title: String, subtitle: String) {
         val intent = Intent(applicationContext, MainActivity::class.java)
         intent.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK
 
         val notificationManager =
             applicationContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        val titleNotification = applicationContext.getString(R.string.notification_title)
         val pendingIntent = getActivity(applicationContext, 0, intent, 0)
         val notification = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL)
             .setSmallIcon(R.drawable.ic_notifications)
-            .setContentTitle(titleNotification)
-            .setContentText("$productName: $currentPrice")
+            .setContentTitle(title)
+            .setContentText(subtitle)
             .setDefaults(DEFAULT_ALL)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
@@ -71,7 +67,8 @@ class NotificationWorker @AssistedInject constructor(
     companion object {
         const val NOTIFICATION_NAME = "Price Tracker"
         const val NOTIFICATION_CHANNEL = "PriceTracker Channel 1"
-        const val PRODUCT_NAME_KEY = "PRODUCT_NAME_KEY"
-        const val CURRENT_PRICE_KEY = "CURRENT_PRICE_KEY"
+        const val TITLE_KEY = "TITLE_KEY"
+        const val SUBTITLE_KEY = "SUBTITLE_KEY"
+        const val ID_KEY = "ID_KEY"
     }
 }

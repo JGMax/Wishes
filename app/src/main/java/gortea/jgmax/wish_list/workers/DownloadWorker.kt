@@ -7,6 +7,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import gortea.jgmax.wish_list.R
 import gortea.jgmax.wish_list.app.data.remote.loader.PageLoader
 import gortea.jgmax.wish_list.app.data.repository.models.wish.WishModel
 import gortea.jgmax.wish_list.di.BackgroundLoader
@@ -50,11 +51,10 @@ class DownloadWorker @AssistedInject constructor(
         val rightCrop = inputData.getInt(RIGHT_CROP_KEY, -1)
         val bottomCrop = inputData.getInt(BOTTOM_CROP_KEY, -1)
         if (leftCrop == -1 || topCrop == -1 || rightCrop == -1 || bottomCrop == -1) {
-            return Result.failure()
+            return Result.success()
         }
 
         val countDownLatch = CountDownLatch(1)
-        var result = Result.failure()
         withContext(Dispatchers.Main) {
             pageLoader.attach(applicationContext)
         }
@@ -81,45 +81,43 @@ class DownloadWorker @AssistedInject constructor(
                             wishModel = action.wishModel
                         }
                         is SelectDataZoneAction.UnknownWish -> {
-                            result = Result.failure()
+                            wishModel?.let { openNotificationWorkerFailure(it) }
                             countDownLatch.countDown()
                         }
                         is SelectDataZoneAction.LoadingFailed -> {
-                            result = Result.retry()
+                            wishModel?.let { openNotificationWorkerFailure(it) }
                             countDownLatch.countDown()
                         }
                         is SelectDataZoneAction.RenderBitmap -> {
                             val cropped =
                                 cropBitmap(action.bitmap, leftCrop, topCrop, rightCrop, bottomCrop)
-                            if (cropped != null) {
+                            if (cropped == null) {
+                                wishModel?.let { openNotificationWorkerFailure(it) }
+                                countDownLatch.countDown()
+                            } else {
                                 feature.handleEvent(
                                     SelectDataZoneEvent.RecognizeText(cropped),
                                     state
                                 )
-                            } else {
-                                result = Result.retry()
-                                countDownLatch.countDown()
                             }
                         }
                         is SelectDataZoneAction.RecognitionFailed -> {
-                            result = Result.retry()
+                            wishModel?.let { openNotificationWorkerFailure(it) }
                             countDownLatch.countDown()
                         }
                         is SelectDataZoneAction.RecognitionResult -> {
                             val newPrice = onlyDigits(action.result).toLongOrNull()
-                            result = if (newPrice == null || wishModel == null) {
+                            if (newPrice == null || wishModel == null) {
+                                wishModel?.let { openNotificationWorkerFailure(it) }
                                 countDownLatch.countDown()
-                                Result.retry()
                             } else {
                                 wishModel?.let {
                                     onRecognitionSucceeded(it, newPrice)
-                                    openNotificationWorker(it, newPrice)
-                                    Result.success()
-                                } ?: Result.failure()
+                                    openNotificationWorkerSuccess(it, newPrice)
+                                }
                             }
                         }
                         is SelectDataZoneAction.WishUpdated -> {
-                            result = Result.success()
                             countDownLatch.countDown()
                         }
                     }
@@ -137,23 +135,39 @@ class DownloadWorker @AssistedInject constructor(
         job.cancel()
         coroutineScope.cancel()
 
-        return result
+        return Result.success()
     }
 
-    private fun openNotificationWorker(wish: WishModel, value: Long) {
+    private fun openNotificationWorkerFailure(wish: WishModel) {
+        val title = applicationContext.getString(R.string.notification_title_failure)
+        val data = Data.Builder()
+            .putInt(NotificationWorker.ID_KEY, wish.title.hashCode())
+            .putString(NotificationWorker.TITLE_KEY, title)
+            .putString(NotificationWorker.SUBTITLE_KEY, wish.title)
+            .build()
+        openNotificationWorker(data)
+    }
+
+    private fun openNotificationWorkerSuccess(wish: WishModel, value: Long) {
         if (value <= requireNotNull(wish.params.targetPrice)) {
+            val title = applicationContext.getString(R.string.notification_title)
             val data = Data.Builder()
-                .putString(NotificationWorker.PRODUCT_NAME_KEY, wish.title)
-                .putLong(NotificationWorker.CURRENT_PRICE_KEY, value)
+                .putInt(NotificationWorker.ID_KEY, wish.title.hashCode())
+                .putString(NotificationWorker.TITLE_KEY, title)
+                .putString(NotificationWorker.SUBTITLE_KEY, "${wish.title}: $value")
                 .build()
-            val notificationWorkRequest: WorkRequest =
-                OneTimeWorkRequestBuilder<NotificationWorker>()
-                    .setInputData(data)
-                    .build()
-            WorkManager
-                .getInstance(applicationContext)
-                .enqueue(notificationWorkRequest)
+            openNotificationWorker(data)
         }
+    }
+
+    private fun openNotificationWorker(data: Data) {
+        val notificationWorkRequest: WorkRequest =
+            OneTimeWorkRequestBuilder<NotificationWorker>()
+                .setInputData(data)
+                .build()
+        WorkManager
+            .getInstance(applicationContext)
+            .enqueue(notificationWorkRequest)
     }
 
     private fun onRecognitionSucceeded(wish: WishModel, value: Long) {
