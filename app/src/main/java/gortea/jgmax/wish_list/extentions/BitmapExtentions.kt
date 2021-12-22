@@ -1,6 +1,5 @@
 package gortea.jgmax.wish_list.extentions
 
-import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -9,8 +8,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-fun Bitmap.cache(filename: String, context: Context) {
-    val file = File(context.cacheDir, filename)
+fun Bitmap.cache(filename: String, cacheDir: File) {
+    val file = File(cacheDir, filename)
     FileOutputStream(file).use {
         compress(Bitmap.CompressFormat.PNG, 100, it)
     }
@@ -18,9 +17,9 @@ fun Bitmap.cache(filename: String, context: Context) {
 
 fun removeBitmapCache(
     filename: String,
-    context: Context,
+    cacheDir: File
 ) {
-    val file = File(context.cacheDir, filename)
+    val file = File(cacheDir, filename)
     if (file.exists()) {
         file.delete()
     }
@@ -28,9 +27,9 @@ fun removeBitmapCache(
 
 fun decodeBitmapFromCache(
     filename: String,
-    context: Context
+    cacheDir: File
 ): Bitmap? {
-    val file = File(context.cacheDir, filename)
+    val file = File(cacheDir, filename)
     return if (file.exists()) {
         BitmapFactory.Options().run {
             inMutable = true

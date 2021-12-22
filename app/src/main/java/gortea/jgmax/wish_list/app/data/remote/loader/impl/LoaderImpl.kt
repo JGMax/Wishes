@@ -304,7 +304,7 @@ class LoaderImpl(
 
     private companion object {
         private const val PROGRESS_CHECK_INTERVAL = 100L
-        private const val REDIRECTION_DELAY = 3500L
+        private const val REDIRECTION_DELAY = 100L
         private const val LOADING_PROGRESS_CHANGE_TIMEOUT = 15000L
         private const val LOADING_PROGRESS_CHANGE_CHECK_INTERVAL = 1000L
     }

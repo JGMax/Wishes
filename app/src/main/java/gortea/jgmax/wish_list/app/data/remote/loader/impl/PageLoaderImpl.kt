@@ -103,7 +103,7 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
 
     private fun saveCache(url: String, page: Bitmap, icon: Bitmap?) {
         loadedUrl = url
-        loader.getLoaderContext()?.let {
+        loader.getLoaderContext()?.filesDir?.let {
             page.cache(pageCacheFileName, it)
             icon?.cache(iconCacheFileName, it)
             isBitmapCached = true
@@ -112,7 +112,7 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
 
     private fun removeCache() {
         if (isBitmapCached) {
-            loader.getLoaderContext()?.let {
+            loader.getLoaderContext()?.filesDir?.let {
                 removeBitmapCache(pageCacheFileName, it)
                 removeBitmapCache(iconCacheFileName, it)
                 isBitmapCached = false
@@ -122,8 +122,8 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
 
     private fun restoreDataFromCache(onComplete: (Bitmap, Bitmap?) -> Unit) {
         loader.getLoaderContext()?.let { context ->
-            decodeBitmapFromCache(pageCacheFileName, context)?.let { page ->
-                val icon = decodeBitmapFromCache(iconCacheFileName, context)
+            decodeBitmapFromCache(pageCacheFileName, context.cacheDir)?.let { page ->
+                val icon = decodeBitmapFromCache(iconCacheFileName, context.cacheDir)
                 onComplete(page, icon)
             }
         }

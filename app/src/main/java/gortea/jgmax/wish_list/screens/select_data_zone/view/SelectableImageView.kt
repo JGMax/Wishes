@@ -12,7 +12,10 @@ import androidx.appcompat.widget.AppCompatImageView
 import gortea.jgmax.wish_list.extentions.cache
 import gortea.jgmax.wish_list.extentions.decodeBitmapFromCache
 import gortea.jgmax.wish_list.extentions.removeBitmapCache
-import gortea.jgmax.wish_list.extentions.toByteArray
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 
@@ -79,6 +82,11 @@ class SelectableImageView @JvmOverloads constructor(
 
     override fun onSaveInstanceState(): Parcelable {
         val bundle = Bundle()
+        CoroutineScope(Dispatchers.IO).launch {
+            removeBitmapCache(FULL_BITMAP_CACHE_FILE, context.cacheDir)
+            fullBitmap?.cache(FULL_BITMAP_CACHE_FILE, context.cacheDir)
+            bundle.putBoolean(FULL_BITMAP_CACHED_KEY, true)
+        }
         bundle.putParcelable(SUPER_STATE_KEY, super.onSaveInstanceState())
         bundle.putParcelable(
             SELECTED_POSITION_STATE_KEY,
@@ -91,25 +99,33 @@ class SelectableImageView @JvmOverloads constructor(
         )
         bundle.putInt(SCROLL_POSITION_KEY, startVisibleY)
         bundle.putBoolean(IS_SELECTION_ENABLED_KEY, isSelectionEnabled)
-        fullBitmap?.cache(FULL_BITMAP_CACHE_FILE, context)
         return bundle
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
         if (state is Bundle) {
-            fullBitmap = decodeBitmapFromCache(FULL_BITMAP_CACHE_FILE, context)
-            removeBitmapCache(FULL_BITMAP_CACHE_FILE, context)
-            startVisibleY = state.getInt(SCROLL_POSITION_KEY, 0)
-            drawMovement(startVisibleY)
-            isSelectionEnabled = state.getBoolean(IS_SELECTION_ENABLED_KEY, false)
-            if (isSelectionEnabled) {
-                state.getParcelable<SelectedPosition>(SELECTED_POSITION_STATE_KEY)?.let { pos ->
-                    startDrawingX = pos.left
-                    endDrawingX = pos.right
-                    startDrawingY = pos.top
-                    endDrawingY = pos.bottom
+            CoroutineScope(Dispatchers.IO).launch {
+                while (!state.getBoolean(FULL_BITMAP_CACHED_KEY, false)) {
+                    delay(2)
                 }
-                drawSelection()
+                startVisibleY = state.getInt(SCROLL_POSITION_KEY, 0)
+                fullBitmap = decodeBitmapFromCache(FULL_BITMAP_CACHE_FILE, context.cacheDir)
+                removeBitmapCache(FULL_BITMAP_CACHE_FILE, context.cacheDir)
+                CoroutineScope(Dispatchers.Main).launch {
+                    drawScroll(startVisibleY)
+                }
+                isSelectionEnabled = state.getBoolean(IS_SELECTION_ENABLED_KEY, false)
+                if (isSelectionEnabled) {
+                    state.getParcelable<SelectedPosition>(SELECTED_POSITION_STATE_KEY)?.let { pos ->
+                        startDrawingX = pos.left
+                        endDrawingX = pos.right
+                        startDrawingY = pos.top
+                        endDrawingY = pos.bottom
+                    }
+                    CoroutineScope(Dispatchers.Main).launch {
+                        drawSelection()
+                    }
+                }
             }
             super.onRestoreInstanceState(state.getParcelable(SUPER_STATE_KEY))
         } else {
@@ -123,6 +139,8 @@ class SelectableImageView @JvmOverloads constructor(
         maxY = yNew
         if (isSelectionEnabled) {
             drawSelection()
+        } else if (isScrollEnabled) {
+            drawScroll(startVisibleY)
         }
     }
 
@@ -145,7 +163,7 @@ class SelectableImageView @JvmOverloads constructor(
             val prevFull = fullBitmap
             fullBitmap = bm
             startVisibleY = 0
-            drawMovement(startVisibleY)
+            drawScroll(startVisibleY)
             prevFull?.recycle()
         }
     }
@@ -161,7 +179,7 @@ class SelectableImageView @JvmOverloads constructor(
     }
 
     private fun handleDrawing(event: MotionEvent?): Boolean {
-        event?.let {
+        return event?.let {
             val handled = when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     startDrawingX = event.x.toInt()
@@ -206,15 +224,14 @@ class SelectableImageView @JvmOverloads constructor(
                 drawSelection()
             }
             return handled
-        }
-        return false
+        } ?: super.onTouchEvent(event)
     }
 
     private var startMove = 0
     private var startVisibleYMovement = 0
     private fun handleScroll(event: MotionEvent?): Boolean {
-        event?.let {
-            val handled = when (event.action) {
+        return event?.let {
+            when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     startMove = event.y.toInt()
                     true
@@ -224,23 +241,21 @@ class SelectableImageView @JvmOverloads constructor(
                         startVisibleYMovement = startVisibleY + startMove - event.y.toInt()
                         val max = (it.height - maxViewHeight.coerceAtMost(it.height))
                         startVisibleYMovement = startVisibleYMovement.coerceIn(0..max)
-                        drawMovement(startVisibleYMovement)
+                        drawScroll(startVisibleYMovement)
                     }
                     true
                 }
                 MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
                     startVisibleY = startVisibleYMovement
-                    drawMovement(startVisibleY)
+                    drawScroll(startVisibleY)
                     true
                 }
                 else -> super.onTouchEvent(event)
             }
-            return handled
-        }
-        return false
+        } ?: super.onTouchEvent(event)
     }
 
-    private fun drawMovement(startY: Int) {
+    private fun drawScroll(startY: Int) {
         fullBitmap?.let {
             val prevVisible = visibleBitmap
             visibleBitmap =
@@ -292,6 +307,7 @@ class SelectableImageView @JvmOverloads constructor(
         private const val SELECTED_POSITION_STATE_KEY = "SELECTED_POSITION_STATE_KEY"
         private const val IS_SELECTION_ENABLED_KEY = "IS_SELECTION_ENABLED_KEY"
         private const val SCROLL_POSITION_KEY = "SCROLL_POSITION_KEY"
+        private const val FULL_BITMAP_CACHED_KEY = "FULL_BITMAP_CACHED_KEY"
         private const val FULL_BITMAP_CACHE_FILE = "FULL_BITMAP_CACHE_FILE"
     }
 }
