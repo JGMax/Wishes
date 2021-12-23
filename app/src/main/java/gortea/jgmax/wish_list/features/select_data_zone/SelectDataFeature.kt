@@ -23,7 +23,7 @@ class SelectDataFeature(
     override val mutableActionFlow = MutableSharedFlow<SelectDataZoneAction>()
 
     private val delayedEvent = DelayedEvent<SelectDataZoneEvent> {
-        handleEvent(it, stateFlow.value)
+        handleEvent(it, null)
     }
 
     override val reducer = SelectDataZoneReducer()

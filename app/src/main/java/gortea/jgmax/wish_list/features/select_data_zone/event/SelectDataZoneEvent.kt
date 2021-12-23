@@ -8,8 +8,8 @@ import gortea.jgmax.wish_list.screens.select_data_zone.event.SelectDataViewEvent
 
 sealed class SelectDataZoneEvent : Event {
     // View Events
-    class LoadUrl(val url: String) : SelectDataZoneEvent()
-    class ReloadUrl(val url: String) : SelectDataZoneEvent()
+    open class LoadUrl(val url: String) : SelectDataZoneEvent()
+    class ReloadUrl(url: String) : LoadUrl(url)
     class RecognizeText(val bitmap: Bitmap) : SelectDataZoneEvent()
     class AcceptSelection(val value: String?, val position: Position?) : SelectDataZoneEvent()
     class GetWish(val url: String) : SelectDataZoneEvent()

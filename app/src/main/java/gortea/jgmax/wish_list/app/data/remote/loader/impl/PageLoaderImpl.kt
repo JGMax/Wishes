@@ -11,6 +11,10 @@ import gortea.jgmax.wish_list.app.data.remote.loader.data.BitmapLoaderResult
 import gortea.jgmax.wish_list.extentions.cache
 import gortea.jgmax.wish_list.extentions.decodeBitmapFromCache
 import gortea.jgmax.wish_list.extentions.removeBitmapCache
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class PageLoaderImpl(private val loader: Loader) : PageLoader {
     private var loadedUrl = ""
@@ -61,14 +65,15 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
                 loader.stopLoading()
             }
             // Workaround to fix narrow page render bug
-            val isInitialLoading = uptimeMillis() - loader.getAttachingTime() > INITIAL_TIMEOUT
+            val isInitialLoading = uptimeMillis() - loader.getAttachingTime() < INITIAL_TIMEOUT
+            val timeout = if (isInitialLoading) INITIAL_TIMEOUT else 0L
 
-            loaderHandler.postDelayed(
-                { startLoading(url) },
-                if (isInitialLoading) INITIAL_TIMEOUT else 0L
-            )
-        } else if (!isLoading && isBitmapCached) {
-            restoreDataFromCache(onComplete)
+            loaderHandler.postDelayed({ startLoading(url) }, timeout)
+        } else if (!isLoading) {
+            restoreDataFromCache(onComplete) {
+                isBitmapCached = false
+                loadAsBitmap(url, true)
+            }
         }
     }
 
@@ -85,10 +90,11 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
     }
 
     private fun onLoadingComplete(url: String, result: BitmapLoaderResult) {
-        saveCache(url, result.page, result.icon)
-        isLoading = false
+        saveCache(result.page, result.icon)
+        loadedUrl = url
         loadingUrl = ""
         onComplete(result.page, result.icon)
+        isLoading = false
     }
 
     private fun onLoadingError() {
@@ -101,32 +107,45 @@ class PageLoaderImpl(private val loader: Loader) : PageLoader {
         onProgress(progress)
     }
 
-    private fun saveCache(url: String, page: Bitmap, icon: Bitmap?) {
-        loadedUrl = url
-        loader.getLoaderContext()?.filesDir?.let {
-            page.cache(pageCacheFileName, it)
-            icon?.cache(iconCacheFileName, it)
-            isBitmapCached = true
+    private fun saveCache(page: Bitmap, icon: Bitmap?) {
+        loader.getLoaderContext()?.cacheDir?.let { cacheDir ->
+            CoroutineScope(Dispatchers.IO).launch {
+                val pageJob = launch {
+                    page.cache(pageCacheFileName, cacheDir)
+                }
+                launch {
+                    icon?.cache(iconCacheFileName, cacheDir)
+                }.join()
+                pageJob.join()
+                isBitmapCached = true
+            }
         }
     }
 
     private fun removeCache() {
         if (isBitmapCached) {
-            loader.getLoaderContext()?.filesDir?.let {
-                removeBitmapCache(pageCacheFileName, it)
-                removeBitmapCache(iconCacheFileName, it)
-                isBitmapCached = false
+            loader.getLoaderContext()?.cacheDir?.let { cacheDir ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    removeBitmapCache(pageCacheFileName, cacheDir)
+                    removeBitmapCache(iconCacheFileName, cacheDir)
+                    isBitmapCached = false
+                }
             }
         }
     }
 
-    private fun restoreDataFromCache(onComplete: (Bitmap, Bitmap?) -> Unit) {
-        loader.getLoaderContext()?.let { context ->
-            decodeBitmapFromCache(pageCacheFileName, context.cacheDir)?.let { page ->
-                val icon = decodeBitmapFromCache(iconCacheFileName, context.cacheDir)
-                onComplete(page, icon)
+    private fun restoreDataFromCache(onComplete: (Bitmap, Bitmap?) -> Unit, onError: () -> Unit) {
+        loader.getLoaderContext()?.cacheDir?.let { cacheDir ->
+            CoroutineScope(Dispatchers.IO).launch {
+                while(!isBitmapCached) {
+                    delay(2)
+                }
+                decodeBitmapFromCache(pageCacheFileName, cacheDir)?.let { page ->
+                    val icon = decodeBitmapFromCache(iconCacheFileName, cacheDir)
+                    onComplete(page, icon)
+                } ?: onError()
             }
-        }
+        } ?: onError()
     }
 
     private companion object {

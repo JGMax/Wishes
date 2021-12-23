@@ -23,7 +23,7 @@ class AddWishFeature(
     override val mutableEventFlow = MutableSharedFlow<AddWishEvent>(replay = 1)
     override val mutableActionFlow = MutableSharedFlow<AddWishAction>()
     private val delayedEvent = DelayedEvent<AddWishEvent> {
-        handleEvent(it, stateFlow.value)
+        handleEvent(it, null)
     }
 
     override val reducer = AddWishReducer()

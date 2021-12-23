@@ -1,6 +1,7 @@
 package gortea.jgmax.wish_list.screens.select_data_zone
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import gortea.jgmax.wish_list.R
@@ -76,6 +77,7 @@ class SelectDataViewModel @Inject constructor(
     override fun bindFeatureStateToViewState(state: SelectDataZoneState): SelectDataViewState {
         return mutableStateFlow.value.copy(
             isLoading = state.isLoading,
+            isSelectionActive = if (state.isLoading) false else stateFlow.value.isSelectionActive,
             isLoadingFailed = state.isLoadingFailed,
             loadingProgress = state.loadingProgress,
             recognitionInProcess = state.recognitionInProcess,

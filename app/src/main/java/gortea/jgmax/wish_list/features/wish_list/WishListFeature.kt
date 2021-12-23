@@ -21,7 +21,7 @@ class WishListFeature(
     override val mutableActionFlow = MutableSharedFlow<WishListAction>()
 
     private val delayedEvent = DelayedEvent<WishListEvent> {
-        handleEvent(it, stateFlow.value)
+        handleEvent(it, null)
     }
 
     override val reducer = WishListReducer()

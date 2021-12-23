@@ -2,6 +2,7 @@ package gortea.jgmax.wish_list.screens.select_data_zone
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -57,6 +58,7 @@ class SelectDataFragment :
 
     override fun renderState(state: SelectDataViewState) {
         _binding?.apply {
+            Log.e("state", state.toString())
             loadingPb.isVisible = state.isLoading
             loadingPb.progress = state.loadingProgress
 

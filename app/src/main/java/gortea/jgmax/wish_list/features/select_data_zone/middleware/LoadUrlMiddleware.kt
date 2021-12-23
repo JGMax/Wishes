@@ -11,24 +11,27 @@ class LoadUrlMiddleware(
 ) : Middleware<SelectDataZoneEvent> {
     override suspend fun effect(event: SelectDataZoneEvent): SelectDataZoneEvent? {
         val newEvent: SelectDataZoneEvent? = when (event) {
-            is SelectDataZoneEvent.LoadUrl, is SelectDataZoneEvent.ReloadUrl -> {
-                val url =
-                    if (event is SelectDataZoneEvent.LoadUrl) event.url else (event as SelectDataZoneEvent.ReloadUrl).url
+            is SelectDataZoneEvent.LoadUrl -> {
                 var isLoading = true
                 pageLoader.attachListeners(
                     onComplete = { page, _ ->
                         isLoading = false
-                        delayedEvent.onEvent(SelectDataZoneEvent.BitmapLoaded(url, page))
+                        delayedEvent.onEvent(SelectDataZoneEvent.BitmapLoaded(event.url, page))
                     },
                     onError = {
                         isLoading = false
                         delayedEvent.onEvent(SelectDataZoneEvent.LoadingFailed)
                     },
                     onProgress = {
-                        delayedEvent.onEvent(SelectDataZoneEvent.LoadingInProgress(it))
+                        if (isLoading) {
+                            delayedEvent.onEvent(SelectDataZoneEvent.LoadingInProgress(it))
+                        }
                     }
                 )
-                pageLoader.loadAsBitmap(url = url, force = event is SelectDataZoneEvent.ReloadUrl)
+                pageLoader.loadAsBitmap(
+                    url = event.url,
+                    force = event is SelectDataZoneEvent.ReloadUrl
+                )
                 if (isLoading) {
                     SelectDataZoneEvent.Loading
                 } else {
