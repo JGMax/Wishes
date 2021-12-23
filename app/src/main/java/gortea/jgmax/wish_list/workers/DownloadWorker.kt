@@ -34,16 +34,18 @@ class DownloadWorker @AssistedInject constructor(
         Log.e("download", "init")
     }
 
+    private var failureCount = 0
+
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val feature = featureFactory
         .createFeature<SelectDataZoneState, SelectDataZoneEvent, SelectDataZoneAction>(
             coroutineScope
         )
         ?: throw IllegalAccessException("Unknown feature")
-    private var state = SelectDataZoneState.Default
 
     private val digitsRegex = Regex("[^\\d]+")
     private fun onlyDigits(str: String): String = digitsRegex.replace(str, "")
+
     override suspend fun doWork(): Result {
         val url = inputData.getString(URL_KEY) ?: return Result.failure()
         val leftCrop = inputData.getInt(LEFT_CROP_KEY, -1)
@@ -59,8 +61,8 @@ class DownloadWorker @AssistedInject constructor(
             pageLoader.attach(applicationContext)
         }
 
-        feature.handleEvent(SelectDataZoneEvent.LoadUrl(url), state)
-        feature.handleEvent(SelectDataZoneEvent.GetWish(url), state)
+        feature.handleEvent(SelectDataZoneEvent.LoadUrl(url), null)
+        feature.handleEvent(SelectDataZoneEvent.GetWish(url), null)
 
         var wishModel: WishModel? = null
 
@@ -85,31 +87,27 @@ class DownloadWorker @AssistedInject constructor(
                             countDownLatch.countDown()
                         }
                         is SelectDataZoneAction.LoadingFailed -> {
-                            wishModel?.let { openNotificationWorkerFailure(it) }
-                            countDownLatch.countDown()
+                            onFailure(url, wishModel, countDownLatch)
                         }
                         is SelectDataZoneAction.RenderBitmap -> {
                             val cropped =
                                 cropBitmap(action.bitmap, leftCrop, topCrop, rightCrop, bottomCrop)
                             if (cropped == null) {
-                                wishModel?.let { openNotificationWorkerFailure(it) }
-                                countDownLatch.countDown()
+                                onFailure(url, wishModel, countDownLatch)
                             } else {
                                 feature.handleEvent(
                                     SelectDataZoneEvent.RecognizeText(cropped),
-                                    state
+                                    null
                                 )
                             }
                         }
                         is SelectDataZoneAction.RecognitionFailed -> {
-                            wishModel?.let { openNotificationWorkerFailure(it) }
-                            countDownLatch.countDown()
+                            onFailure(url, wishModel, countDownLatch)
                         }
                         is SelectDataZoneAction.RecognitionResult -> {
                             val newPrice = onlyDigits(action.result).toLongOrNull()
                             if (newPrice == null || wishModel == null) {
-                                wishModel?.let { openNotificationWorkerFailure(it) }
-                                countDownLatch.countDown()
+                                onFailure(url, wishModel, countDownLatch)
                             } else {
                                 wishModel?.let {
                                     onRecognitionSucceeded(it, newPrice)
@@ -136,6 +134,17 @@ class DownloadWorker @AssistedInject constructor(
         coroutineScope.cancel()
 
         return Result.success()
+    }
+
+    private fun onFailure(url: String, wishModel: WishModel?, countDownLatch: CountDownLatch) {
+        failureCount++
+        if (failureCount >= MAX_FAILURE_COUNT) {
+            wishModel?.let { openNotificationWorkerFailure(it) }
+            countDownLatch.countDown()
+        } else {
+            Log.e("retry", url)
+            feature.handleEvent(SelectDataZoneEvent.ReloadUrl(url), null)
+        }
     }
 
     private fun openNotificationWorkerFailure(wish: WishModel) {
@@ -173,7 +182,7 @@ class DownloadWorker @AssistedInject constructor(
     private fun onRecognitionSucceeded(wish: WishModel, value: Long) {
         feature.handleEvent(
             SelectDataZoneEvent.UpdateWish(wishModel = wish.copy(currentPrice = value)),
-            state
+            null
         )
     }
 
@@ -202,5 +211,6 @@ class DownloadWorker @AssistedInject constructor(
         const val TOP_CROP_KEY = "TOP_CROP_KEY"
         const val RIGHT_CROP_KEY = "RIGHT_CROP_KEY"
         const val BOTTOM_CROP_KEY = "BOTTOM_CROP_KEY"
+        private const val MAX_FAILURE_COUNT = 3
     }
 }
